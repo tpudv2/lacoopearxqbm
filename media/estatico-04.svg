@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101a33"></stop>
+      <stop offset="1" stop-color="#171130"></stop>
+    </linearGradient>
+    <pattern id="s" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="24" stroke="#ffffff" stroke-opacity="0.04" stroke-width="12"></line>
+    </pattern>
+  </defs>
+  <rect width="800" height="1000" fill="url(#g)"></rect>
+  <rect width="800" height="1000" fill="url(#s)"></rect>
+  <rect x="10" y="10" width="780" height="980" fill="none" stroke="#ffffff" stroke-opacity="0.10" stroke-width="2"></rect>
+  <text x="400" y="494" font-family="&#39;Space Mono&#39;, monospace" font-size="57" fill="#7d88b0" text-anchor="middle" letter-spacing="1">IMAGEN ESTÁTICA</text>
+  <text x="400" y="567" font-family="&#39;Space Mono&#39;, monospace" font-size="36" fill="#566091" text-anchor="middle" letter-spacing="2">800×1000</text>
+</svg>
