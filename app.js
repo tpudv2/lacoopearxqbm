@@ -8,7 +8,7 @@
   /* ----------------------------------------------------------
      Configuración y constantes
      ---------------------------------------------------------- */
-  var AUTH = { user: 'lacoopear', pass: 'lacoopear2026' };
+  var AUTH = { user: 'tpuds12', pass: 'tpuds12lacoopear_' };
   var STORE_KEY = 'lcp_posts_v2';
   var AUTH_KEY = 'lcp_auth_v1';
   var LABELS = { estatico: 'Estático', video: 'Video', copy: 'Copy', tendencias: 'Tendencias' };
@@ -136,6 +136,66 @@
     return null;
   }
 
+  /* Hostname legible (ej: "pinterest.com") */
+  function detectHost(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); }
+    catch (e) { return ''; }
+  }
+
+  /* ¿Es un archivo de video servible directamente? */
+  function isDirectMedia(url) {
+    if (!/^https?:\/\//i.test(url)) return true; // ruta local (media/…)
+    return /\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(url);
+  }
+
+  /*
+    Clasifica el contenido del campo "video":
+      file      → archivo local o enlace directo .mp4/.webm  → <video> inline
+      youtube   → se incrusta en el lightbox
+      vimeo     → se incrusta en el lightbox
+      pinterest → se incrusta el pin real en el lightbox (widget oficial)
+      link      → cualquier otra página → se abre en su origen (pestaña nueva)
+  */
+  function classifyVideo(url) {
+    if (!url) return { type: 'file' };
+    var u = String(url).trim();
+
+    var emb = getEmbed(u);
+    if (emb) return { type: emb.provider, embed: emb };
+
+    if (/pinterest\.[a-z.]+\/pin\//i.test(u) || /pin\.it\//i.test(u)) {
+      return { type: 'pinterest', url: u, host: detectHost(u) || 'pinterest.com' };
+    }
+
+    if (isDirectMedia(u)) return { type: 'file' };
+
+    return { type: 'link', url: u, host: detectHost(u) };
+  }
+
+  /* Carga perezosa del widget de Pinterest (una sola vez) */
+  var pinitState = 'idle'; // idle | loading | ready
+  var pinitQueue = [];
+  function buildPins() {
+    if (window.PinUtils && typeof window.PinUtils.build === 'function') window.PinUtils.build();
+  }
+  function loadPinit(cb) {
+    if (pinitState === 'ready') { if (cb) cb(); return; }
+    if (cb) pinitQueue.push(cb);
+    if (pinitState === 'loading') return;
+    pinitState = 'loading';
+    var s = document.createElement('script');
+    s.async = true;
+    s.defer = true;
+    s.src = 'https://assets.pinterest.com/js/pinit.js';
+    s.onload = function () {
+      pinitState = 'ready';
+      pinitQueue.forEach(function (f) { if (f) f(); });
+      pinitQueue = [];
+    };
+    s.onerror = function () { pinitState = 'idle'; };
+    document.body.appendChild(s);
+  }
+
   function makePlayBadge() {
     var badge = document.createElement('div');
     badge.className = 'play-badge';
@@ -186,9 +246,31 @@
     document.body.style.overflow = 'hidden';
   }
 
-  /* ----------------------------------------------------------
-     Filtros y conteos
-     ---------------------------------------------------------- */
+  /* Abre un pin real de Pinterest dentro del lightbox (widget oficial) */
+  function openPinterest(url) {
+    lightboxBody.innerHTML = '';
+    var wrap = document.createElement('div');
+    wrap.className = 'embed-pin';
+
+    var pin = document.createElement('a');
+    pin.setAttribute('data-pin-do', 'embedPin');
+    pin.setAttribute('data-pin-width', 'large');
+    pin.href = url;
+    wrap.appendChild(pin);
+
+    var fb = document.createElement('a');
+    fb.className = 'embed-fallback';
+    fb.href = url;
+    fb.target = '_blank';
+    fb.rel = 'noopener';
+    fb.textContent = '¿No carga? Abrir en Pinterest ↗';
+    wrap.appendChild(fb);
+
+    lightboxBody.appendChild(wrap);
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    loadPinit(buildPins);
+  }
   function updateCounts() {
     var totals = { todos: 0, estatico: 0, video: 0, copy: 0, tendencias: 0 };
     grid.querySelectorAll('.card').forEach(function (card) {
@@ -310,9 +392,9 @@
     article.dataset.id = post.id;
     article.dataset.category = post.type;
 
-    var embed = post.type === 'video' ? getEmbed(post.video) : null;
+    var vinfo = post.type === 'video' ? classifyVideo(post.video) : null;
     if (post.type === 'estatico') article.classList.add('card--zoom');
-    if (post.type === 'video' && !embed) article.classList.add('card--zoom');
+    if (post.type === 'video' && vinfo.type === 'file') article.classList.add('card--zoom');
     if (post.type === 'copy') article.classList.add('card--copy');
     if (post.type === 'tendencias') article.classList.add('card--tendencias');
 
@@ -332,17 +414,9 @@
     } else if (post.type === 'video') {
       var vMedia = document.createElement('div');
       vMedia.className = 'media';
-      if (embed) {
-        var thumb = post.poster || embed.thumb || 'media/video-poster.svg';
-        var timg = document.createElement('img');
-        timg.src = thumb;
-        timg.alt = post.title || 'Video';
-        timg.loading = 'lazy';
-        vMedia.appendChild(timg);
-        vMedia.appendChild(makePlayBadge());
-        vMedia.style.cursor = 'zoom-in';
-        vMedia.addEventListener('click', function (e) { e.stopPropagation(); openEmbed(embed); });
-      } else {
+
+      if (vinfo.type === 'file') {
+        // Archivo local o enlace directo .mp4/.webm → se reproduce inline
         var video = document.createElement('video');
         if (post.video) video.src = post.video;
         if (post.poster) video.poster = post.poster;
@@ -350,7 +424,36 @@
         video.playsInline = true; video.setAttribute('preload', 'none');
         vMedia.appendChild(video);
         vMedia.appendChild(makePlayBadge());
+
+      } else {
+        // YouTube / Vimeo / Pinterest / otro enlace → portada + clic
+        var posterSrc = post.poster || (vinfo.embed && vinfo.embed.thumb) || '';
+        if (posterSrc) {
+          var timg = document.createElement('img');
+          timg.src = posterSrc;
+          timg.alt = post.title || 'Video';
+          timg.loading = 'lazy';
+          vMedia.appendChild(timg);
+        } else {
+          // Sin portada: mosaico con el nombre de la plataforma
+          var fallback = document.createElement('div');
+          fallback.className = 'media-fallback';
+          var host = document.createElement('span');
+          host.className = 'media-fallback__host';
+          host.textContent = vinfo.host || vinfo.type || 'Enlace';
+          fallback.appendChild(host);
+          vMedia.appendChild(fallback);
+        }
+        vMedia.appendChild(makePlayBadge());
+        vMedia.style.cursor = 'zoom-in';
+        vMedia.addEventListener('click', function (e) {
+          e.stopPropagation();
+          if (vinfo.type === 'youtube' || vinfo.type === 'vimeo') openEmbed(vinfo.embed);
+          else if (vinfo.type === 'pinterest') openPinterest(vinfo.url);
+          else window.open(vinfo.url, '_blank', 'noopener');
+        });
       }
+
       article.appendChild(vMedia);
       article.appendChild(buildFoot(post));
 
@@ -417,13 +520,35 @@
     }
 
     if (post.type === 'video') {
-      var emb = getEmbed(post.video);
-      if (emb) {
+      var info = classifyVideo(post.video);
+
+      if (info.type === 'youtube' || info.type === 'vimeo') {
+        var emb = info.embed;
         return '<article class="card" data-category="video">\n' +
           '  <div class="media" style="position:relative;aspect-ratio:' + (emb.vertical ? '9/16' : '16/9') + '">' +
           '<iframe src="' + esc(emb.sstatic) + '" loading="lazy" allow="fullscreen; encrypted-media; picture-in-picture" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe></div>\n' +
           '  <div class="card-foot"><span class="card-tag">Video</span>' + titleHtml + '</div>\n</article>';
       }
+
+      if (info.type === 'pinterest') {
+        return '<article class="card" data-category="video">\n' +
+          '  <div class="media"><a data-pin-do="embedPin" data-pin-width="large" href="' + esc(info.url) + '"></a></div>\n' +
+          '  <div class="card-foot"><span class="card-tag">Video</span>' + titleHtml + '</div>\n</article>\n' +
+          '<!-- Pinterest: incluye UNA vez en la página el script del widget:\n' +
+          '     <script async defer src="https://assets.pinterest.com/js/pinit.js"><\/script> -->';
+      }
+
+      if (info.type === 'link') {
+        var inner = post.poster
+          ? '<img src="' + esc(post.poster) + '" alt="' + esc(post.title) + '" loading="lazy" />'
+          : '<span class="media-fallback"><span class="media-fallback__host">' + esc(info.host) + '</span></span>';
+        return '<article class="card card--zoom" data-category="video">\n' +
+          '  <a class="media" href="' + esc(info.url) + '" target="_blank" rel="noopener" style="display:block;cursor:zoom-in">' +
+          inner + '<span class="play-badge"><span></span></span></a>\n' +
+          '  <div class="card-foot"><span class="card-tag">Video</span>' + titleHtml + '</div>\n</article>';
+      }
+
+      // Archivo local o enlace directo
       return '<article class="card card--zoom" data-category="video">\n' +
         '  <div class="media"><video src="' + esc(post.video) + '"' + (post.poster ? ' poster="' + esc(post.poster) + '"' : '') +
         ' autoplay muted loop playsinline preload="none"></video><div class="play-badge"><span></span></div></div>\n' +

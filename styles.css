@@ -443,6 +443,40 @@ a { color: inherit; }
 
 .embed-fallback:hover { color: #fff; text-decoration: underline; }
 
+/* Mosaico de respaldo cuando un enlace no tiene portada */
+.media-fallback {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #101a33, #171130);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: lowercase;
+  text-align: center;
+  padding: 16px;
+}
+
+.media-fallback__host {
+  max-width: 90%;
+  word-break: break-word;
+}
+
+/* Pin de Pinterest incrustado en el lightbox */
+.embed-pin {
+  position: relative;
+  width: min(92vw, 560px);
+  max-height: 86vh;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 34px;
+}
+
+.embed-pin .embed-fallback { bottom: 6px; }
+
 /* ============================================================
    ESTADO VACÍO
    ============================================================ */
