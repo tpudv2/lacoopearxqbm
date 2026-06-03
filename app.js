@@ -1,5 +1,5 @@
 /* ============================================================
-   LACOOPEAR × QBM — Firebase + Formulario Completo
+   LACOOPEAR × QBM — Versión Estable (Admin + Crear Posteo)
    ============================================================ */
 'use strict';
 
@@ -10,7 +10,7 @@
 
   var $ = id => document.getElementById(id);
 
-  /* DOM Elements */
+  /* DOM */
   var grid = $('grid');
   var loginBtn = $('loginBtn');
   var createBtn = $('createBtn');
@@ -28,24 +28,17 @@
   var imgPreview = $('imgPreview');
   var fVideo = $('fVideo');
   var fPoster = $('fPoster');
-  var posterDrop = $('posterDrop');
-  var posterFile = $('posterFile');
   var fCopy = $('fCopy');
   var fH3 = $('fH3');
   var fDesc = $('fDesc');
-  var linkList = $('linkList');
-  var createTitle = $('createTitle');
 
   var currentType = 'estatico';
   var editId = null;
   var pendingImg = null;
-  var pendingPoster = null;
 
   let allPosts = [];
 
-  /* ----------------------------------------------------------
-     Firebase
-     ---------------------------------------------------------- */
+  /* Firebase */
   async function loadPosts() {
     try {
       const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').get();
@@ -64,139 +57,130 @@
         post.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         await db.collection('posts').doc().set(post);
       }
-      showToast(editId ? 'Posteo actualizado' : '✅ Posteo creado');
+      showToast(editId ? 'Actualizado' : '✅ Posteo creado');
       editId = null;
       await loadPosts();
       closeModal(createModal);
       resetForm();
     } catch (e) {
       console.error(e);
-      alert('Error guardando en Firebase');
+      alert('Error al guardar');
     }
   }
 
-  /* ----------------------------------------------------------
-     Utilidades
-     ---------------------------------------------------------- */
+  /* Utilidades */
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 2200);
   }
 
-  function processImageFile(file, maxWidth, quality, callback) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function () {
-      const img = new Image();
-      img.onload = function () {
-        let w = img.width, h = img.height;
-        if (w > maxWidth) {
-          h = Math.round(h * maxWidth / w);
-          w = maxWidth;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        callback(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
+  function isAuthed() { return localStorage.getItem(AUTH_KEY) === '1'; }
+
+  function setAuthUI() {
+    const on = isAuthed();
+    document.body.classList.toggle('is-admin', on);
+    loginBtn.classList.toggle('hidden', on);
+    createBtn.classList.toggle('hidden', !on);
+    logoutBtn.classList.toggle('hidden', !on);
   }
 
-  /* ----------------------------------------------------------
-     Formulario
-     ---------------------------------------------------------- */
-  function setType(type) {
-    currentType = type;
-    typeSeg.querySelectorAll('button').forEach(b => {
-      b.setAttribute('aria-pressed', b.dataset.type === type);
-    });
-    createModal.querySelector('.f-estatico').classList.toggle('hidden', type !== 'estatico');
-    createModal.querySelector('.f-video').classList.toggle('hidden', type !== 'video');
-    createModal.querySelector('.f-copy').classList.toggle('hidden', type !== 'copy');
-    createModal.querySelector('.f-tendencias').classList.toggle('hidden', type !== 'tendencias');
-  }
-
-  function resetForm() {
-    editId = null;
-    pendingImg = null;
-    pendingPoster = null;
-    fTitle.value = ''; fImage.value = ''; fVideo.value = '';
-    fPoster.value = ''; fCopy.value = ''; fH3.value = ''; fDesc.value = '';
-    imgPreview.style.display = 'none';
-    linkList.innerHTML = '';
-  }
-
-  function openCreate(post) {
-    resetForm();
-    if (post) {
-      editId = post.id;
-      createTitle.textContent = 'Editar posteo';
-      setType(post.type);
+  function doLogin() {
+    if (loginUser.value.trim() === AUTH.user && loginPass.value === AUTH.pass) {
+      localStorage.setItem(AUTH_KEY, '1');
+      setAuthUI();
+      closeModal(loginModal);
+      showToast('✅ Modo Admin Activado');
     } else {
-      createTitle.textContent = 'Nuevo posteo';
-      setType('estatico');
+      loginErr.classList.remove('hidden');
     }
-    openModal(createModal);
   }
 
   function closeModal(m) { m.classList.remove('open'); }
   function openModal(m) { m.classList.add('open'); }
 
-  /* Save */
-  $('saveBtn').addEventListener('click', function () {
-    const post = { type: currentType };
+  function resetForm() {
+    editId = null;
+    pendingImg = null;
+    fTitle.value = '';
+    fImage.value = '';
+    fVideo.value = '';
+    fPoster.value = '';
+    fCopy.value = '';
+    fH3.value = '';
+    fDesc.value = '';
+    imgPreview.style.display = 'none';
+  }
 
-    if (currentType !== 'tendencias') post.title = fTitle.value.trim();
+  function openCreate() {
+    resetForm();
+    createTitle.textContent = 'Nuevo posteo';
+    setType('estatico');
+    openModal(createModal);
+  }
+
+  function setType(type) {
+    currentType = type;
+    typeSeg.querySelectorAll('button').forEach(b => {
+      b.setAttribute('aria-pressed', String(b.dataset.type === type));
+    });
+  }
+
+  /* Guardar Post */
+  $('saveBtn').addEventListener('click', function () {
+    const post = { type: currentType, title: fTitle.value.trim() };
 
     if (currentType === 'estatico') {
-      if (!pendingImg) return alert('Debes subir una imagen');
+      if (!pendingImg) return alert('❌ Debes subir una imagen');
       post.img = pendingImg;
       post.desc = fDesc.value.trim();
     } else if (currentType === 'video') {
       post.video = fVideo.value.trim();
-      post.poster = pendingPoster || fPoster.value.trim();
       post.desc = fDesc.value.trim();
-      if (!post.video) return alert('Ingresa el video o enlace');
     } else if (currentType === 'copy') {
       post.text = fCopy.value.trim();
-      if (!post.text) return alert('Escribe el texto');
     } else if (currentType === 'tendencias') {
       post.h3 = fH3.value.trim();
-      if (!post.h3) return alert('Escribe el encabezado');
     }
 
     savePost(post);
   });
 
-  /* Imagen Estático */
+  /* Subir imagen */
   fImage.addEventListener('change', function () {
-    processImageFile(fImage.files[0], 1400, 0.82, function (dataURL) {
-      pendingImg = dataURL;
-      imgPreview.querySelector('img').src = dataURL;
+    const file = fImage.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      pendingImg = e.target.result;
+      imgPreview.querySelector('img').src = pendingImg;
       imgPreview.style.display = 'block';
-    });
+    };
+    reader.readAsDataURL(file);
   });
+
+  /* Render */
+  function render() {
+    grid.innerHTML = '';
+    allPosts.forEach(post => {
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `<div class="card-foot"><span class="card-tag">${LABELS[post.type]}</span><p>${post.title || ''}</p></div>`;
+      grid.appendChild(card);
+    });
+  }
 
   /* Arranque */
   setAuthUI();
-  loadPosts();
+  if (typeof db !== "undefined") loadPosts();
 
   loginBtn.addEventListener('click', () => openModal(loginModal));
   $('loginSubmit').addEventListener('click', doLogin);
-  createBtn.addEventListener('click', () => openCreate(null));
+  createBtn.addEventListener('click', openCreate);
   logoutBtn.addEventListener('click', () => {
     localStorage.removeItem(AUTH_KEY);
     setAuthUI();
   });
 
   typeSeg.addEventListener('click', e => {
-    const btn = e.target.closest('button');
-    if (btn) setType(btn.dataset.type);
-  });
-
-  console.log("✅ Formulario completo cargado");
-})();
+    const btn
