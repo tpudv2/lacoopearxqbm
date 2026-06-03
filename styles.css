@@ -286,6 +286,14 @@ a { color: inherit; }
   text-wrap: balance;
 }
 
+.card-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+  margin: 0;
+  text-wrap: pretty;
+}
+
 /* Tarjeta COPY */
 .card--copy .copy-body { padding: 20px 18px; }
 
@@ -569,6 +577,13 @@ a { color: inherit; }
 
 .admin-bar .btn--primary { background: var(--grad); }
 
+/* "Crear posteo" con el gradiente claro (igual que el filtro activo) */
+.admin-bar #createBtn {
+  background: var(--grad-warm);
+  color: #1a1305;
+  border-color: transparent;
+}
+
 /* Toolbar sobre cada tarjeta creada */
 .card-admin {
   position: absolute;
@@ -684,6 +699,8 @@ textarea.input {
   resize: vertical;
   line-height: 1.45;
 }
+
+#fDesc { min-height: 64px; }
 
 .seg {
   display: flex;

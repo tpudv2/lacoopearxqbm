@@ -48,6 +48,7 @@
   var posterFile = $('posterFile');
   var fCopy = $('fCopy');
   var fH3 = $('fH3');
+  var fDesc = $('fDesc');
   var linkList = $('linkList');
   var createTitle = $('createTitle');
   var toast = $('toast');
@@ -395,6 +396,12 @@
       title.textContent = post.title;
       foot.appendChild(title);
     }
+    if (!tagOnly && post.desc) {
+      var desc = document.createElement('p');
+      desc.className = 'card-desc';
+      desc.textContent = post.desc;
+      foot.appendChild(desc);
+    }
     return foot;
   }
 
@@ -577,6 +584,8 @@
      ---------------------------------------------------------- */
   function toHTML(post) {
     var titleHtml = post.title ? '<p class="card-title">' + esc(post.title) + '</p>' : '';
+    var descHtml = post.desc ? '<p class="card-desc">' + esc(post.desc) + '</p>' : '';
+    titleHtml = titleHtml + descHtml;
 
     if (post.type === 'estatico') {
       return '<article class="card card--zoom" data-category="estatico">\n' +
@@ -693,6 +702,7 @@
     createModal.querySelector('.f-copy').classList.toggle('hidden', type !== 'copy');
     createModal.querySelector('.f-tendencias').classList.toggle('hidden', type !== 'tendencias');
     createModal.querySelector('.f-title').classList.toggle('hidden', type === 'tendencias');
+    createModal.querySelector('.f-desc').classList.toggle('hidden', type !== 'estatico' && type !== 'video');
   }
 
   typeSeg.addEventListener('click', function (e) {
@@ -732,7 +742,7 @@
     editId = null;
     pendingImg = null;
     fTitle.value = ''; fImage.value = ''; fVideo.value = '';
-    fPoster.value = ''; fCopy.value = ''; fH3.value = '';
+    fPoster.value = ''; fCopy.value = ''; fH3.value = ''; fDesc.value = '';
     imgPreview.style.display = 'none';
     imgPreview.querySelector('img').src = '';
     clearPoster();
@@ -757,6 +767,7 @@
           imgPreview.style.display = 'block';
         }
         fTitle.value = post.title || '';
+        fDesc.value = post.desc || '';
       } else if (post.type === 'video') {
         fVideo.value = post.video || '';
         if (post.poster && /^data:image\//.test(post.poster)) {
@@ -766,6 +777,7 @@
           fPoster.value = post.poster || '';
         }
         fTitle.value = post.title || '';
+        fDesc.value = post.desc || '';
       } else if (post.type === 'copy') {
         fCopy.value = post.text || '';
         fTitle.value = post.title || '';
@@ -914,9 +926,11 @@
     if (currentType === 'estatico') {
       if (!pendingImg) { alert('Agrega una imagen.'); return; }
       post.img = pendingImg;
+      post.desc = fDesc.value.trim();
     } else if (currentType === 'video') {
       post.video = fVideo.value.trim();
       post.poster = pendingPoster || fPoster.value.trim();
+      post.desc = fDesc.value.trim();
       if (!post.video) { alert('Escribe la ruta o el enlace del video.'); return; }
 
       // Video directo sin portada → intentar capturar el primer frame
