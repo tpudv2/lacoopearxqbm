@@ -1,5 +1,5 @@
 /* ============================================================
-   LACOOPEAR × QBM — Portfolio con Firebase (Versión Completa)
+   LACOOPEAR × QBM — Portfolio con Firebase (Versión Final)
    ============================================================ */
 'use strict';
 
@@ -7,9 +7,12 @@
   /* ----------------------------------------------------------
      Configuración y constantes
      ---------------------------------------------------------- */
-  var AUTH = { user: 'tpuds12', pass: 'tpuds12lacoopear_' };
-  var $ = function (id) { return document.getElementById(id); };
+  var AUTH = { user: 'lacoopear', pass: 'lacoopear2026' };
+  var STORE_KEY = 'lcp_posts_v2';
+  var AUTH_KEY = 'lcp_auth_v1';
+  var LABELS = { estatico: 'Estático', video: 'Video', copy: 'Copy', tendencias: 'Tendencias' };
 
+  var $ = function (id) { return document.getElementById(id); };
   /* ----------------------------------------------------------
      Referencias del DOM
      ---------------------------------------------------------- */
