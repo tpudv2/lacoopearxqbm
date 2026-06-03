@@ -11,7 +11,9 @@ const firebaseConfig = {
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
   console.log("✅ Firebase inicializado correctamente");
+} else {
+  console.log("Firebase ya estaba inicializado");
 }
 
 const db = firebase.firestore();
-window.db = db; // Para que app.js pueda acceder
+window.db = db;

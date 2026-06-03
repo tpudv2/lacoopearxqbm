@@ -1,5 +1,5 @@
 /* ============================================================
-   LACOOPEAR × QBM — Firebase Versión Corregida
+   LACOOPEAR × QBM — Firebase (Versión Estable)
    ============================================================ */
 'use strict';
 
@@ -10,7 +10,6 @@
 
   var $ = id => document.getElementById(id);
 
-  // DOM Elements
   var grid = $('grid');
   var loginBtn = $('loginBtn');
   var createBtn = $('createBtn');
@@ -23,9 +22,7 @@
   var toast = $('toast');
 
   let allPosts = [];
-  var editId = null;
 
-  /* Utilidades */
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
@@ -56,7 +53,7 @@
   function closeModal(m) { m.classList.remove('open'); }
   function openModal(m) { m.classList.add('open'); }
 
-  /* Firebase */
+  /* Cargar Posts */
   async function loadPosts() {
     try {
       const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').get();
@@ -86,6 +83,8 @@
   setAuthUI();
   if (typeof db !== "undefined") {
     loadPosts();
+  } else {
+    console.error("❌ db no está definido");
   }
 
   // Eventos
