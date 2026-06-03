@@ -95,14 +95,20 @@
     <p class="lede">Galería de ideas y referencias. Filtra por tipo y abre cualquier pieza para verla en grande.</p>
   </header>
 
-  <!-- ============ FILTROS ============ -->
-  <nav class="filterbar" aria-label="Filtros de categoría">
-    <div class="filterbar__inner" id="filters">
-      <button class="filter" type="button" data-filter="todos" aria-pressed="true">Todos <span class="filter__count"></span></button>
-      <button class="filter" type="button" data-filter="estatico" aria-pressed="false">Estáticos <span class="filter__count"></span></button>
-      <button class="filter" type="button" data-filter="video" aria-pressed="false">Videos <span class="filter__count"></span></button>
-      <button class="filter" type="button" data-filter="copy" aria-pressed="false">Copy <span class="filter__count"></span></button>
-      <button class="filter" type="button" data-filter="tendencias" aria-pressed="false">Tendencias <span class="filter__count"></span></button>
+  <!-- ============ BÚSQUEDA + FILTROS ============ -->
+  <nav class="filterbar" aria-label="Búsqueda y filtros de categoría">
+    <div class="filterbar__inner">
+      <div class="searchbar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+        <input class="searchbar__input" id="search" type="search" placeholder="Buscar por palabra clave (título, descripción, copy…)" aria-label="Buscar" />
+      </div>
+      <div class="filterbar__chips" id="filters">
+        <button class="filter" type="button" data-filter="todos" aria-pressed="true">Todos <span class="filter__count"></span></button>
+        <button class="filter" type="button" data-filter="estatico" aria-pressed="false">Estáticos <span class="filter__count"></span></button>
+        <button class="filter" type="button" data-filter="video" aria-pressed="false">Videos <span class="filter__count"></span></button>
+        <button class="filter" type="button" data-filter="copy" aria-pressed="false">Copy <span class="filter__count"></span></button>
+        <button class="filter" type="button" data-filter="tendencias" aria-pressed="false">Tendencias <span class="filter__count"></span></button>
+      </div>
     </div>
   </nav>
 

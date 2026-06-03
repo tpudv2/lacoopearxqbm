@@ -8,7 +8,7 @@
   /* ----------------------------------------------------------
      Configuración y constantes
      ---------------------------------------------------------- */
-  var AUTH = { user: 'lacoopear', pass: 'lacoopear2026' };
+  var AUTH = { user: 'tpuds12', pass: 'tpuds12lacoopear_' };
   var STORE_KEY = 'lcp_posts_v2';
   var AUTH_KEY = 'lcp_auth_v1';
   var LABELS = { estatico: 'Estático', video: 'Video', copy: 'Copy', tendencias: 'Tendencias' };
@@ -20,6 +20,7 @@
      ---------------------------------------------------------- */
   var grid = $('grid');
   var filters = $('filters');
+  var searchInput = $('search');
   var empty = $('empty');
   var lightbox = $('lightbox');
   var lightboxBody = $('lbContent');
@@ -357,29 +358,41 @@
     });
   }
 
-  function applyFilter(cat) {
+  function currentCategory() {
+    var active = filters.querySelector('.filter[aria-pressed="true"]');
+    return active ? active.dataset.filter : 'todos';
+  }
+
+  function applyFilters() {
+    var cat = currentCategory();
+    var q = (searchInput.value || '').trim().toLowerCase();
     var visible = 0;
     grid.querySelectorAll('.card').forEach(function (card) {
-      var show = (cat === 'todos') || (card.dataset.category === cat);
+      var okCat = (cat === 'todos') || (card.dataset.category === cat);
+      var hay = (card.dataset.search || card.textContent || '').toLowerCase();
+      var okSearch = !q || hay.indexOf(q) >= 0;
+      var show = okCat && okSearch;
       card.classList.toggle('is-hidden', !show);
       if (show) visible++;
     });
+    empty.textContent = q
+      ? 'No hay resultados para “' + searchInput.value.trim() + '”.'
+      : 'No hay piezas en esta categoría todavía.';
     empty.style.display = visible === 0 ? 'block' : 'none';
   }
 
-  function reapplyFilter() {
-    var active = filters.querySelector('.filter[aria-pressed="true"]');
-    applyFilter(active ? active.dataset.filter : 'todos');
-  }
+  function reapplyFilter() { applyFilters(); }
 
   filters.addEventListener('click', function (e) {
     var btn = e.target.closest('.filter');
     if (!btn) return;
     filters.querySelectorAll('.filter').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
     btn.setAttribute('aria-pressed', 'true');
-    applyFilter(btn.dataset.filter);
+    applyFilters();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+
+  searchInput.addEventListener('input', applyFilters);
 
   /* Click en tarjetas con media ampliable (delegación) */
   grid.addEventListener('click', function (e) {
@@ -421,13 +434,56 @@
   /* ----------------------------------------------------------
      Construcción de tarjetas en el DOM
      ---------------------------------------------------------- */
+  var STATUS_LABELS = { red: 'Sin empezar', yellow: 'En proceso', green: 'Terminado' };
+
+  function buildStatus(post) {
+    var wrap = document.createElement('div');
+    wrap.className = 'card-status';
+    wrap.dataset.status = post.status || 'red';
+    ['red', 'yellow', 'green'].forEach(function (s) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'status-dot status-dot--' + s;
+      dot.title = STATUS_LABELS[s];
+      dot.setAttribute('aria-label', 'Estado: ' + STATUS_LABELS[s]);
+      dot.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (!document.body.classList.contains('is-admin')) return;
+        setStatus(post.id, s);
+      });
+      wrap.appendChild(dot);
+    });
+    return wrap;
+  }
+
+  function setStatus(id, status) {
+    var posts = getPosts();
+    for (var i = 0; i < posts.length; i++) {
+      if (posts[i].id === id) { posts[i].status = status; break; }
+    }
+    setPosts(posts);
+    var card = grid.querySelector('.card[data-id="' + id + '"]');
+    if (card) {
+      card.dataset.status = status;
+      var sc = card.querySelector('.card-status');
+      if (sc) sc.dataset.status = status;
+    }
+    showToast('Estado: ' + STATUS_LABELS[status]);
+  }
+
   function buildFoot(post, tagOnly) {
     var foot = document.createElement('div');
     foot.className = 'card-foot';
+
+    var row = document.createElement('div');
+    row.className = 'card-foot__row';
     var tag = document.createElement('span');
     tag.className = 'card-tag';
     tag.textContent = LABELS[post.type];
-    foot.appendChild(tag);
+    row.appendChild(tag);
+    row.appendChild(buildStatus(post));
+    foot.appendChild(row);
+
     if (!tagOnly && post.title) {
       var title = document.createElement('p');
       title.className = 'card-title';
@@ -496,8 +552,13 @@
     article.setAttribute('data-dynamic', '1');
     article.dataset.id = post.id;
     article.dataset.category = post.type;
+    article.dataset.status = post.status || 'red';
     if (post.title) article.dataset.title = post.title;
     if (post.desc) article.dataset.desc = post.desc;
+
+    var searchParts = [post.title, post.desc, post.text, post.h3, LABELS[post.type]];
+    (post.links || []).forEach(function (l) { searchParts.push(l.label, l.url); });
+    article.dataset.search = searchParts.filter(Boolean).join(' ').toLowerCase();
 
     var vinfo = post.type === 'video' ? classifyVideo(post.video) : null;
     if (post.type === 'estatico') article.classList.add('card--zoom');
@@ -957,9 +1018,14 @@
     var posts = getPosts();
     if (editId) {
       for (var i = 0; i < posts.length; i++) {
-        if (posts[i].id === editId) { posts[i] = post; break; }
+        if (posts[i].id === editId) {
+          if (!post.status && posts[i].status) post.status = posts[i].status;
+          posts[i] = post;
+          break;
+        }
       }
     } else {
+      if (!post.status) post.status = 'red';
       posts.unshift(post);
     }
 
