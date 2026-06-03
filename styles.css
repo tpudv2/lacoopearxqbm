@@ -287,11 +287,48 @@ a { color: inherit; }
 }
 
 .card-desc {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.card-desc__text {
+  flex: 1;
+  min-width: 0;
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--muted);
   margin: 0;
   text-wrap: pretty;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-desc__open {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .15s ease, border-color .15s ease;
+}
+
+.card-desc__open:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.card-desc__open svg {
+  width: 13px;
+  height: 13px;
 }
 
 /* Tarjeta COPY */
@@ -384,6 +421,93 @@ a { color: inherit; }
 .lightbox-content {
   max-width: 92vw;
   max-height: 90vh;
+}
+
+/* Stage: media + descripción al lado */
+.lightbox-stage {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  max-width: 96vw;
+  max-height: 90vh;
+}
+
+.lightbox-stage.is-solo { display: block; }
+
+.lightbox-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.lightbox-media img,
+.lightbox-media video {
+  max-width: min(70vw, 1100px);
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+}
+
+.lightbox-stage.is-solo .lightbox-media img,
+.lightbox-stage.is-solo .lightbox-media video {
+  max-width: 92vw;
+}
+
+.lightbox-desc {
+  flex: 0 0 300px;
+  max-width: 300px;
+  max-height: 86vh;
+  overflow-y: auto;
+  color: var(--ink);
+  background: rgba(12, 19, 34, .65);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  padding: 20px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.lightbox-desc h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+}
+
+.lightbox-desc p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+  white-space: pre-wrap;
+  text-wrap: pretty;
+}
+
+/* Reduce el ancho del embed cuando hay descripción al lado */
+.lightbox-stage:not(.is-solo) .embed-wrap { width: min(60vw, 880px); }
+
+@media (max-width: 720px) {
+  .lightbox-stage {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .lightbox-media img,
+  .lightbox-media video {
+    max-width: 92vw;
+    max-height: 58vh;
+  }
+  .lightbox-desc {
+    flex: none;
+    width: 100%;
+    max-width: 92vw;
+    max-height: 28vh;
+  }
+  .lightbox-stage:not(.is-solo) .embed-wrap { width: 92vw; }
 }
 
 .lightbox-content img,
@@ -877,3 +1001,69 @@ textarea.input {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* ============================================================
+   LECTOR FLOTANTE (descripción)
+   ============================================================ */
+.reader {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: rgba(4, 6, 14, .8);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.reader.open { display: flex; }
+
+.reader-card {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #0c1322;
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  padding: 26px 24px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .6);
+}
+
+.reader-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  padding-right: 34px;
+  text-wrap: balance;
+}
+
+.reader-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre-wrap;
+  text-wrap: pretty;
+}
+
+.reader-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, .08);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.reader-close:hover { background: rgba(255, 255, 255, .16); }

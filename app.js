@@ -24,6 +24,10 @@
   var lightbox = $('lightbox');
   var lightboxBody = $('lbContent');
   var lightboxClose = $('lbClose');
+  var reader = $('reader');
+  var readerTitle = $('readerTitle');
+  var readerText = $('readerText');
+  var readerClose = $('readerClose');
 
   var loginBtn = $('loginBtn');
   var createBtn = $('createBtn');
@@ -240,13 +244,42 @@
   }
 
   /* ----------------------------------------------------------
-     Lightbox
+     Lightbox (media + descripción al lado)
      ---------------------------------------------------------- */
-  function openLightbox(node) {
+  function descAside(title, desc) {
+    var aside = document.createElement('aside');
+    aside.className = 'lightbox-desc';
+    if (title) {
+      var h = document.createElement('h3');
+      h.textContent = title;
+      aside.appendChild(h);
+    }
+    var p = document.createElement('p');
+    p.textContent = desc;
+    aside.appendChild(p);
+    return aside;
+  }
+
+  function mountStage(mediaNode, title, desc) {
     lightboxBody.innerHTML = '';
-    lightboxBody.appendChild(node);
+    var stage = document.createElement('div');
+    stage.className = 'lightbox-stage' + (desc ? '' : ' is-solo');
+
+    var media = document.createElement('div');
+    media.className = 'lightbox-media';
+    media.appendChild(mediaNode);
+    stage.appendChild(media);
+
+    if (desc) stage.appendChild(descAside(title, desc));
+
+    lightboxBody.appendChild(stage);
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
+  }
+
+  /* Compatibilidad: abrir un nodo (imagen/video) con descripción opcional */
+  function openLightbox(node, title, desc) {
+    mountStage(node, title, desc);
   }
 
   function closeLightbox() {
@@ -255,8 +288,7 @@
     document.body.style.overflow = '';
   }
 
-  function openEmbed(embed) {
-    lightboxBody.innerHTML = '';
+  function openEmbed(embed, title, desc) {
     var wrap = document.createElement('div');
     wrap.className = 'embed-wrap' + (embed.vertical ? ' embed-wrap--v' : '');
 
@@ -277,14 +309,11 @@
       wrap.appendChild(fb);
     }
 
-    lightboxBody.appendChild(wrap);
-    lightbox.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    mountStage(wrap, title, desc);
   }
 
   /* Abre un pin real de Pinterest dentro del lightbox (widget oficial) */
-  function openPinterest(url) {
-    lightboxBody.innerHTML = '';
+  function openPinterest(url, title, desc) {
     var wrap = document.createElement('div');
     wrap.className = 'embed-pin';
 
@@ -302,10 +331,18 @@
     fb.textContent = '¿No carga? Abrir en Pinterest ↗';
     wrap.appendChild(fb);
 
-    lightboxBody.appendChild(wrap);
-    lightbox.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    mountStage(wrap, title, desc);
     loadPinit(buildPins);
+  }
+
+  /* Lector flotante: muestra solo el texto de la descripción */
+  function openReader(title, text) {
+    readerTitle.textContent = title || 'Descripción';
+    readerText.textContent = text || '';
+    reader.classList.add('open');
+  }
+  function closeReader() {
+    reader.classList.remove('open');
   }
   function updateCounts() {
     var totals = { todos: 0, estatico: 0, video: 0, copy: 0, tendencias: 0 };
@@ -355,11 +392,11 @@
       var clone = new Image();
       clone.src = img.currentSrc || img.src;
       clone.alt = img.alt || '';
-      openLightbox(clone);
+      openLightbox(clone, card.dataset.title, card.dataset.desc);
     } else if (vid) {
       if (!vid.getAttribute('src')) {
         var poster = vid.getAttribute('poster');
-        if (poster) { var p = new Image(); p.src = poster; openLightbox(p); }
+        if (poster) { var p = new Image(); p.src = poster; openLightbox(p, card.dataset.title, card.dataset.desc); }
         return;
       }
       var v = document.createElement('video');
@@ -370,15 +407,16 @@
       v.muted = false;         // con sonido al abrir
       v.playsInline = true;
       v.setAttribute('controlslist', 'nodownload');
-      v.style.maxWidth = '92vw';
-      v.style.maxHeight = '90vh';
-      openLightbox(v);
+      openLightbox(v, card.dataset.title, card.dataset.desc);
       v.play().catch(function () {});
     }
   });
 
   lightboxClose.addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', function (e) { if (e.target === lightbox) closeLightbox(); });
+
+  readerClose.addEventListener('click', closeReader);
+  reader.addEventListener('click', function (e) { if (e.target === reader) closeReader(); });
 
   /* ----------------------------------------------------------
      Construcción de tarjetas en el DOM
@@ -397,10 +435,27 @@
       foot.appendChild(title);
     }
     if (!tagOnly && post.desc) {
-      var desc = document.createElement('p');
-      desc.className = 'card-desc';
-      desc.textContent = post.desc;
-      foot.appendChild(desc);
+      var descWrap = document.createElement('div');
+      descWrap.className = 'card-desc';
+
+      var txt = document.createElement('p');
+      txt.className = 'card-desc__text';
+      txt.textContent = post.desc;
+
+      var openBtn = document.createElement('button');
+      openBtn.type = 'button';
+      openBtn.className = 'card-desc__open';
+      openBtn.title = 'Leer descripción';
+      openBtn.setAttribute('aria-label', 'Leer descripción');
+      openBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>';
+      openBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        openReader(post.title, post.desc);
+      });
+
+      descWrap.appendChild(txt);
+      descWrap.appendChild(openBtn);
+      foot.appendChild(descWrap);
     }
     return foot;
   }
@@ -441,6 +496,8 @@
     article.setAttribute('data-dynamic', '1');
     article.dataset.id = post.id;
     article.dataset.category = post.type;
+    if (post.title) article.dataset.title = post.title;
+    if (post.desc) article.dataset.desc = post.desc;
 
     var vinfo = post.type === 'video' ? classifyVideo(post.video) : null;
     if (post.type === 'estatico') article.classList.add('card--zoom');
@@ -521,8 +578,8 @@
         vMedia.style.cursor = 'zoom-in';
         vMedia.addEventListener('click', function (e) {
           e.stopPropagation();
-          if (vinfo.type === 'youtube' || vinfo.type === 'vimeo') openEmbed(vinfo.embed);
-          else if (vinfo.type === 'pinterest') openPinterest(vinfo.url);
+          if (vinfo.type === 'youtube' || vinfo.type === 'vimeo') openEmbed(vinfo.embed, post.title, post.desc);
+          else if (vinfo.type === 'pinterest') openPinterest(vinfo.url, post.title, post.desc);
         });
       }
 
@@ -1006,6 +1063,7 @@
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
+      closeReader();
       closeLightbox();
       closeModal(loginModal);
       closeModal(createModal);
