@@ -1,5 +1,5 @@
 /* ============================================================
-   LACOOPEAR × QBM — Versión Estable (Admin + Crear Posteo)
+   LACOOPEAR × QBM — Firebase Estable
    ============================================================ */
 'use strict';
 
@@ -10,7 +10,6 @@
 
   var $ = id => document.getElementById(id);
 
-  /* DOM */
   var grid = $('grid');
   var loginBtn = $('loginBtn');
   var createBtn = $('createBtn');
@@ -38,7 +37,7 @@
 
   let allPosts = [];
 
-  /* Firebase */
+  /* Firebase Functions */
   async function loadPosts() {
     try {
       const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').get();
@@ -63,12 +62,10 @@
       closeModal(createModal);
       resetForm();
     } catch (e) {
-      console.error(e);
       alert('Error al guardar');
     }
   }
 
-  /* Utilidades */
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
@@ -114,29 +111,18 @@
 
   function openCreate() {
     resetForm();
-    createTitle.textContent = 'Nuevo posteo';
-    setType('estatico');
     openModal(createModal);
   }
 
-  function setType(type) {
-    currentType = type;
-    typeSeg.querySelectorAll('button').forEach(b => {
-      b.setAttribute('aria-pressed', String(b.dataset.type === type));
-    });
-  }
-
-  /* Guardar Post */
+  /* Guardar */
   $('saveBtn').addEventListener('click', function () {
     const post = { type: currentType, title: fTitle.value.trim() };
 
     if (currentType === 'estatico') {
-      if (!pendingImg) return alert('❌ Debes subir una imagen');
+      if (!pendingImg) return alert('Sube una imagen primero');
       post.img = pendingImg;
-      post.desc = fDesc.value.trim();
     } else if (currentType === 'video') {
       post.video = fVideo.value.trim();
-      post.desc = fDesc.value.trim();
     } else if (currentType === 'copy') {
       post.text = fCopy.value.trim();
     } else if (currentType === 'tendencias') {
@@ -149,30 +135,20 @@
   /* Subir imagen */
   fImage.addEventListener('change', function () {
     const file = fImage.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      pendingImg = e.target.result;
-      imgPreview.querySelector('img').src = pendingImg;
-      imgPreview.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        pendingImg = e.target.result;
+        imgPreview.querySelector('img').src = pendingImg;
+        imgPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
   });
-
-  /* Render */
-  function render() {
-    grid.innerHTML = '';
-    allPosts.forEach(post => {
-      const card = document.createElement('article');
-      card.className = 'card';
-      card.innerHTML = `<div class="card-foot"><span class="card-tag">${LABELS[post.type]}</span><p>${post.title || ''}</p></div>`;
-      grid.appendChild(card);
-    });
-  }
 
   /* Arranque */
   setAuthUI();
-  if (typeof db !== "undefined") loadPosts();
+  loadPosts();
 
   loginBtn.addEventListener('click', () => openModal(loginModal));
   $('loginSubmit').addEventListener('click', doLogin);
@@ -182,5 +158,5 @@
     setAuthUI();
   });
 
-  typeSeg.addEventListener('click', e => {
-    const btn
+  console.log("✅ App estable cargada");
+})();
