@@ -1,23 +1,17 @@
 /* ============================================================
-   LACOOPEAR × QBM — Firebase + Funcionalidad Completa
+   LACOOPEAR × QBM — Firebase + Formulario Completo
    ============================================================ */
 'use strict';
 
 (function () {
-  /* ----------------------------------------------------------
-     Configuración
-     ---------------------------------------------------------- */
   var AUTH = { user: 'lacoopear', pass: 'lacoopear2026' };
   var AUTH_KEY = 'lcp_auth_v1';
   var LABELS = { estatico: 'Estático', video: 'Video', copy: 'Copy', tendencias: 'Tendencias' };
 
   var $ = id => document.getElementById(id);
 
-  /* DOM */
+  /* DOM Elements */
   var grid = $('grid');
-  var filters = $('filters');
-  var searchInput = $('search');
-  var empty = $('empty');
   var loginBtn = $('loginBtn');
   var createBtn = $('createBtn');
   var logoutBtn = $('logoutBtn');
@@ -35,6 +29,7 @@
   var fVideo = $('fVideo');
   var fPoster = $('fPoster');
   var posterDrop = $('posterDrop');
+  var posterFile = $('posterFile');
   var fCopy = $('fCopy');
   var fH3 = $('fH3');
   var fDesc = $('fDesc');
@@ -69,21 +64,15 @@
         post.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         await db.collection('posts').doc().set(post);
       }
-      showToast(editId ? 'Posteo actualizado' : 'Posteo creado');
+      showToast(editId ? 'Posteo actualizado' : '✅ Posteo creado');
       editId = null;
       await loadPosts();
       closeModal(createModal);
       resetForm();
     } catch (e) {
       console.error(e);
-      alert('Error al guardar en Firebase');
+      alert('Error guardando en Firebase');
     }
-  }
-
-  async function deletePost(id) {
-    if (!confirm('¿Eliminar este posteo?')) return;
-    await db.collection('posts').doc(id).delete();
-    await loadPosts();
   }
 
   /* ----------------------------------------------------------
@@ -95,44 +84,48 @@
     setTimeout(() => toast.classList.remove('show'), 2200);
   }
 
-  function isAuthed() { return localStorage.getItem(AUTH_KEY) === '1'; }
-
-  function setAuthUI() {
-    const on = isAuthed();
-    document.body.classList.toggle('is-admin', on);
-    loginBtn.classList.toggle('hidden', on);
-    createBtn.classList.toggle('hidden', !on);
-    logoutBtn.classList.toggle('hidden', !on);
+  function processImageFile(file, maxWidth, quality, callback) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+      const img = new Image();
+      img.onload = function () {
+        let w = img.width, h = img.height;
+        if (w > maxWidth) {
+          h = Math.round(h * maxWidth / w);
+          w = maxWidth;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        callback(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
   }
-
-  function doLogin() {
-    if (loginUser.value.trim() === AUTH.user && loginPass.value === AUTH.pass) {
-      localStorage.setItem(AUTH_KEY, '1');
-      setAuthUI();
-      closeModal(loginModal);
-      showToast('✅ Modo Admin Activado');
-    } else {
-      loginErr.classList.remove('hidden');
-    }
-  }
-
-  function closeModal(m) { m.classList.remove('open'); }
-  function openModal(m) { m.classList.add('open'); }
 
   /* ----------------------------------------------------------
-     Formulario Crear / Editar
+     Formulario
      ---------------------------------------------------------- */
+  function setType(type) {
+    currentType = type;
+    typeSeg.querySelectorAll('button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.type === type);
+    });
+    createModal.querySelector('.f-estatico').classList.toggle('hidden', type !== 'estatico');
+    createModal.querySelector('.f-video').classList.toggle('hidden', type !== 'video');
+    createModal.querySelector('.f-copy').classList.toggle('hidden', type !== 'copy');
+    createModal.querySelector('.f-tendencias').classList.toggle('hidden', type !== 'tendencias');
+  }
+
   function resetForm() {
     editId = null;
     pendingImg = null;
     pendingPoster = null;
-    fTitle.value = '';
-    fImage.value = '';
-    fVideo.value = '';
-    fPoster.value = '';
-    fCopy.value = '';
-    fH3.value = '';
-    fDesc.value = '';
+    fTitle.value = ''; fImage.value = ''; fVideo.value = '';
+    fPoster.value = ''; fCopy.value = ''; fH3.value = ''; fDesc.value = '';
     imgPreview.style.display = 'none';
     linkList.innerHTML = '';
   }
@@ -142,32 +135,35 @@
     if (post) {
       editId = post.id;
       createTitle.textContent = 'Editar posteo';
-      currentType = post.type;
-      // Cargar datos existentes (simplificado)
+      setType(post.type);
     } else {
       createTitle.textContent = 'Nuevo posteo';
+      setType('estatico');
     }
     openModal(createModal);
   }
 
-  /* Save Button */
+  function closeModal(m) { m.classList.remove('open'); }
+  function openModal(m) { m.classList.add('open'); }
+
+  /* Save */
   $('saveBtn').addEventListener('click', function () {
     const post = { type: currentType };
 
     if (currentType !== 'tendencias') post.title = fTitle.value.trim();
 
     if (currentType === 'estatico') {
-      if (!pendingImg) return alert('Debes agregar una imagen');
+      if (!pendingImg) return alert('Debes subir una imagen');
       post.img = pendingImg;
       post.desc = fDesc.value.trim();
     } else if (currentType === 'video') {
       post.video = fVideo.value.trim();
       post.poster = pendingPoster || fPoster.value.trim();
       post.desc = fDesc.value.trim();
-      if (!post.video) return alert('Ingresa el enlace o archivo del video');
+      if (!post.video) return alert('Ingresa el video o enlace');
     } else if (currentType === 'copy') {
       post.text = fCopy.value.trim();
-      if (!post.text) return alert('Escribe el texto del copy');
+      if (!post.text) return alert('Escribe el texto');
     } else if (currentType === 'tendencias') {
       post.h3 = fH3.value.trim();
       if (!post.h3) return alert('Escribe el encabezado');
@@ -176,42 +172,31 @@
     savePost(post);
   });
 
-  /* ----------------------------------------------------------
-     Render básico (puedes mejorarlo después)
-     ---------------------------------------------------------- */
-  function render() {
-    grid.innerHTML = '';
-    allPosts.forEach(post => {
-      const card = document.createElement('article');
-      card.className = 'card';
-      card.innerHTML = `
-        <div class="card-admin">
-          <button class="edit">✎</button>
-          <button class="del">🗑</button>
-        </div>
-        <div class="card-foot">
-          <span class="card-tag">${LABELS[post.type]}</span>
-          <p class="card-title">${post.title || ''}</p>
-        </div>`;
-      card.querySelector('.edit').addEventListener('click', () => openCreate(post));
-      card.querySelector('.del').addEventListener('click', () => deletePost(post.id));
-      grid.appendChild(card);
+  /* Imagen Estático */
+  fImage.addEventListener('change', function () {
+    processImageFile(fImage.files[0], 1400, 0.82, function (dataURL) {
+      pendingImg = dataURL;
+      imgPreview.querySelector('img').src = dataURL;
+      imgPreview.style.display = 'block';
     });
-  }
+  });
 
-  /* ----------------------------------------------------------
-     Arranque
-     ---------------------------------------------------------- */
+  /* Arranque */
   setAuthUI();
-  if (typeof db !== "undefined") loadPosts();
+  loadPosts();
 
   loginBtn.addEventListener('click', () => openModal(loginModal));
   $('loginSubmit').addEventListener('click', doLogin);
+  createBtn.addEventListener('click', () => openCreate(null));
   logoutBtn.addEventListener('click', () => {
     localStorage.removeItem(AUTH_KEY);
     setAuthUI();
   });
-  createBtn.addEventListener('click', () => openCreate(null));
 
-  console.log("✅ LACOOPEAR cargado con Firebase + Formulario");
+  typeSeg.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (btn) setType(btn.dataset.type);
+  });
+
+  console.log("✅ Formulario completo cargado");
 })();
