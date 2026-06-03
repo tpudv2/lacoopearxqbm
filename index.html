@@ -174,9 +174,18 @@
         <label for="fVideo">Video — archivo, enlace directo, YouTube/Vimeo o Pinterest</label>
         <input class="input" id="fVideo" type="text" placeholder="media/video.mp4  ·  https://cdn.../clip  ·  youtu.be/...  ·  pinterest.com/pin/..." />
         <p class="note">Acepta: archivo de <strong>media/</strong>, <strong>enlace directo</strong> a un video (aunque no termine en .mp4), o enlace de <strong>YouTube, Shorts o Vimeo</strong>. Para enlaces directos se genera la <strong>portada del primer frame</strong> automáticamente y al abrir tendrás controles de <strong>play y volumen</strong>. <strong>Pinterest</strong> se incrusta con su propio reproductor.</p>
-        <label for="fPoster" style="margin-top:14px">Portada / poster (opcional) — ruta o enlace</label>
-        <input class="input" id="fPoster" type="text" placeholder="media/video-poster.svg  ·  https://.../portada.jpg" />
-        <p class="note">Si lo dejas vacío, intentamos generar la portada sola. Conviene ponerla a mano para enlaces de <strong>Pinterest</strong> u otras plataformas que no exponen el archivo de video.</p>
+        <label for="fPoster" style="margin-top:14px">Portada / poster (opcional)</label>
+        <input class="input" id="fPoster" type="text" placeholder="Ruta o enlace: media/portada.jpg  ·  https://.../portada.jpg" />
+        <div class="dropzone" id="posterDrop" tabindex="0" role="button" aria-label="Subir o pegar una portada">
+          <div class="dropzone__hint">
+            <strong>Arrastra</strong> una imagen aquí · <strong>clic</strong> para subir<br />
+            o pega una captura con <strong>Ctrl / Cmd + V</strong>
+          </div>
+          <img class="dropzone__preview" alt="Vista previa de la portada" />
+          <button type="button" class="dropzone__clear" aria-label="Quitar portada">×</button>
+          <input type="file" id="posterFile" accept="image/*" class="hidden" />
+        </div>
+        <p class="note">Si dejas todo vacío, intentamos generar la portada del primer frame. Para <strong>Pinterest</strong> u otras plataformas, sube o pega una captura aquí.</p>
       </div>
 
       <!-- COPY -->

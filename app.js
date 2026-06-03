@@ -44,6 +44,8 @@
   var imgPreview = $('imgPreview');
   var fVideo = $('fVideo');
   var fPoster = $('fPoster');
+  var posterDrop = $('posterDrop');
+  var posterFile = $('posterFile');
   var fCopy = $('fCopy');
   var fH3 = $('fH3');
   var linkList = $('linkList');
@@ -53,6 +55,7 @@
   var currentType = 'estatico';
   var editId = null;
   var pendingImg = null;
+  var pendingPoster = null;
   var toastTimer = null;
 
   /* ----------------------------------------------------------
@@ -732,6 +735,7 @@
     fPoster.value = ''; fCopy.value = ''; fH3.value = '';
     imgPreview.style.display = 'none';
     imgPreview.querySelector('img').src = '';
+    clearPoster();
     linkList.innerHTML = '';
     addLinkRow('', '');
     addLinkRow('', '');
@@ -755,7 +759,12 @@
         fTitle.value = post.title || '';
       } else if (post.type === 'video') {
         fVideo.value = post.video || '';
-        fPoster.value = post.poster || '';
+        if (post.poster && /^data:image\//.test(post.poster)) {
+          setPosterPreview(post.poster);
+          fPoster.value = '';
+        } else {
+          fPoster.value = post.poster || '';
+        }
         fTitle.value = post.title || '';
       } else if (post.type === 'copy') {
         fCopy.value = post.text || '';
@@ -773,27 +782,96 @@
   createBtn.addEventListener('click', function () { openCreate(null); });
   $('createCancel').addEventListener('click', function () { closeModal(createModal); });
 
-  /* Imagen → reescalar → dataURL */
-  fImage.addEventListener('change', function () {
-    var file = fImage.files && fImage.files[0];
-    if (!file) return;
+  /* Lee un archivo de imagen, lo reescala y devuelve un dataURL */
+  function processImageFile(file, maxWidth, quality, cb) {
+    if (!file || !/^image\//.test(file.type)) return;
     var reader = new FileReader();
     reader.onload = function () {
       var img = new Image();
       img.onload = function () {
-        var max = 1400, w = img.width, h = img.height;
-        if (w > max) { h = Math.round(h * max / w); w = max; }
+        var w = img.width, h = img.height;
+        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
         var canvas = document.createElement('canvas');
         canvas.width = w;
         canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        pendingImg = canvas.toDataURL('image/jpeg', 0.82);
-        imgPreview.querySelector('img').src = pendingImg;
-        imgPreview.style.display = 'block';
+        cb(canvas.toDataURL('image/jpeg', quality));
       };
       img.src = reader.result;
     };
     reader.readAsDataURL(file);
+  }
+
+  /* Imagen estática → reescalar → dataURL */
+  fImage.addEventListener('change', function () {
+    processImageFile(fImage.files && fImage.files[0], 1400, 0.82, function (dataURL) {
+      pendingImg = dataURL;
+      imgPreview.querySelector('img').src = pendingImg;
+      imgPreview.style.display = 'block';
+    });
+  });
+
+  /* ----------------------------------------------------------
+     Portada: dropzone (subir / arrastrar / pegar)
+     ---------------------------------------------------------- */
+  function setPosterPreview(dataURL) {
+    pendingPoster = dataURL;
+    posterDrop.classList.add('has-img');
+    posterDrop.querySelector('.dropzone__preview').src = dataURL;
+  }
+
+  function clearPoster() {
+    pendingPoster = null;
+    posterDrop.classList.remove('has-img');
+    posterDrop.querySelector('.dropzone__preview').removeAttribute('src');
+  }
+
+  posterDrop.addEventListener('click', function (e) {
+    if (e.target.closest('.dropzone__clear')) return;
+    if (posterDrop.classList.contains('has-img')) return;
+    posterFile.click();
+  });
+
+  posterFile.addEventListener('change', function () {
+    processImageFile(posterFile.files && posterFile.files[0], 1200, 0.8, setPosterPreview);
+    posterFile.value = '';
+  });
+
+  posterDrop.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    posterDrop.classList.add('drag');
+  });
+  posterDrop.addEventListener('dragleave', function () {
+    posterDrop.classList.remove('drag');
+  });
+  posterDrop.addEventListener('drop', function (e) {
+    e.preventDefault();
+    posterDrop.classList.remove('drag');
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    processImageFile(file, 1200, 0.8, setPosterPreview);
+  });
+
+  posterDrop.querySelector('.dropzone__clear').addEventListener('click', function (e) {
+    e.stopPropagation();
+    clearPoster();
+  });
+
+  /* Pegar (Ctrl/Cmd + V) una captura mientras se crea un video */
+  document.addEventListener('paste', function (e) {
+    if (!createModal.classList.contains('open') || currentType !== 'video') return;
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.indexOf('image') === 0) {
+        var file = items[i].getAsFile();
+        if (file) {
+          processImageFile(file, 1200, 0.8, setPosterPreview);
+          showToast('Captura pegada como portada');
+        }
+        e.preventDefault();
+        break;
+      }
+    }
   });
 
   function collectLinks() {
@@ -838,7 +916,7 @@
       post.img = pendingImg;
     } else if (currentType === 'video') {
       post.video = fVideo.value.trim();
-      post.poster = fPoster.value.trim();
+      post.poster = pendingPoster || fPoster.value.trim();
       if (!post.video) { alert('Escribe la ruta o el enlace del video.'); return; }
 
       // Video directo sin portada → intentar capturar el primer frame
