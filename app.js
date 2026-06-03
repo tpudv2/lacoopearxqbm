@@ -8,7 +8,7 @@
   /* ----------------------------------------------------------
      Configuración y constantes
      ---------------------------------------------------------- */
-  var AUTH = { user: 'tpuds12', pass: 'tpuds12lacoopear_' };
+  var AUTH = { user: 'lacoopear', pass: 'lacoopear2026' };
   var STORE_KEY = 'lcp_posts_v2';
   var AUTH_KEY = 'lcp_auth_v1';
   var LABELS = { estatico: 'Estático', video: 'Video', copy: 'Copy', tendencias: 'Tendencias' };
