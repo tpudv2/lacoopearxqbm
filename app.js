@@ -1,5 +1,5 @@
 /* ============================================================
-   LACOOPEAR × QBM — Firebase (Versión Estable)
+   LACOOPEAR × QBM — Firebase Versión Estable
    ============================================================ */
 'use strict';
 
@@ -22,6 +22,7 @@
   var toast = $('toast');
 
   let allPosts = [];
+  var editId = null;
 
   function showToast(msg) {
     toast.textContent = msg;
@@ -53,7 +54,6 @@
   function closeModal(m) { m.classList.remove('open'); }
   function openModal(m) { m.classList.add('open'); }
 
-  /* Cargar Posts */
   async function loadPosts() {
     try {
       const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').get();
@@ -83,13 +83,11 @@
   setAuthUI();
   if (typeof db !== "undefined") {
     loadPosts();
-  } else {
-    console.error("❌ db no está definido");
   }
 
   // Eventos
   loginBtn.addEventListener('click', () => openModal(loginModal));
-  $('loginSubmit').addEventListener('click', doLogin);
+  if ($('loginSubmit')) $('loginSubmit').addEventListener('click', doLogin);
   logoutBtn.addEventListener('click', () => {
     localStorage.removeItem(AUTH_KEY);
     setAuthUI();
