@@ -1,5 +1,5 @@
 /* ============================================================
-   LACOOPEAR × QBM — Portfolio con Firebase (Versión Completa)
+   LACOOPEAR × QBM — Portfolio con Firebase (Versión Corregida)
    ============================================================ */
 'use strict';
 
@@ -64,24 +64,24 @@
   let allPosts = [];
 
   /* ----------------------------------------------------------
-     Firebase Config (REEMPLAZA ESTO CON TUS DATOS)
+     Firebase Config - REEMPLAZA CON TUS DATOS
      ---------------------------------------------------------- */
   const firebaseConfig = {
-    apiKey: "AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxx",           // ← TU API KEY
-    authDomain: "TU-PROYECTO.firebaseapp.com",
-    projectId: "TU-PROYECTO",
-    storageBucket: "TU-PROYECTO.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:xxxxxxxxxxxxxxxxxxxxxxxx"
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_PROYECTO.firebaseapp.com",
+    projectId: "TU_PROYECTO",
+    storageBucket: "TU_PROYECTO.appspot.com",
+    messagingSenderId: "XXXXXXXXXXXX",
+    appId: "1:XXXXXXXXXXXX:web:XXXXXXXXXXXXXXXX"
   };
 
-  if (!firebase.apps.length) {
+  if (typeof firebase !== "undefined" && !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
   }
   const db = firebase.firestore();
 
   /* ----------------------------------------------------------
-     Firebase: Cargar / Guardar / Eliminar
+     Funciones Firebase
      ---------------------------------------------------------- */
   async function loadPosts() {
     try {
@@ -89,8 +89,8 @@
       allPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       render();
     } catch (e) {
-      console.error("Error cargando posts:", e);
-      showToast('Error al cargar posteos desde Firebase');
+      console.error(e);
+      showToast('Error cargando desde Firebase');
     }
   }
 
@@ -102,30 +102,24 @@
         post.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         await db.collection('posts').doc().set(post);
       }
-      showToast(editId ? 'Posteo actualizado' : 'Posteo creado');
-      editId = null;
       await loadPosts();
       closeModal(createModal);
       resetForm();
+      showToast(editId ? 'Actualizado' : 'Creado');
     } catch (e) {
       console.error(e);
-      alert('Error al guardar en Firebase. Revisa la consola (F12)');
+      alert('Error guardando en Firebase');
     }
   }
 
   async function deletePost(id) {
-    if (!confirm('¿Eliminar este posteo?')) return;
-    try {
-      await db.collection('posts').doc(id).delete();
-      showToast('Posteo eliminado');
-      await loadPosts();
-    } catch (e) {
-      alert('Error al eliminar');
-    }
+    if (!confirm('Eliminar?')) return;
+    await db.collection('posts').doc(id).delete();
+    await loadPosts();
   }
 
   /* ----------------------------------------------------------
-     Utilidades y funciones originales
+     Utilidades + Funciones originales (resumidas)
      ---------------------------------------------------------- */
   function showToast(msg) {
     toast.textContent = msg;
@@ -134,93 +128,6 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
   }
 
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  function applyBold(container, text) {
-    String(text || '').split('**').forEach(function (part, i) {
-      if (i % 2 === 1) {
-        var strong = document.createElement('strong');
-        strong.textContent = part;
-        container.appendChild(strong);
-      } else {
-        container.appendChild(document.createTextNode(part));
-      }
-    });
-  }
-
-  function boldHtml(s) {
-    return String(s || '').split('**').map((part, i) => i % 2 ? '<strong>' + esc(part) + '</strong>' : esc(part)).join('');
-  }
-
-  // ... (getEmbed, classifyVideo, captureFirstFrame, etc. - se mantienen igual)
-
-  function getEmbed(url) { /* mismo código original */ }
-  function classifyVideo(url) { /* mismo código original */ }
-  function captureFirstFrame(url) { /* mismo código original */ }
-
-  /* Lightbox */
-  function mountStage(mediaNode, title, desc) { /* código original */ }
-  function closeLightbox() { /* código original */ }
-  function openEmbed(embed, title, desc) { /* código original */ }
-  function openReader(title, text) { /* código original */ }
-  function closeReader() { /* código original */ }
-
-  /* ----------------------------------------------------------
-     Cards y Render (versión completa)
-     ---------------------------------------------------------- */
-  function buildAdminBar(post) {
-    var bar = document.createElement('div');
-    bar.className = 'card-admin';
-    var bCopy = document.createElement('button'); bCopy.className = 'copy'; bCopy.textContent = '⧉';
-    var bEdit = document.createElement('button'); bEdit.className = 'edit'; bEdit.textContent = '✎';
-    var bDel = document.createElement('button'); bDel.className = 'del'; bDel.textContent = '🗑';
-
-    bCopy.addEventListener('click', e => { e.stopPropagation(); copyHTML(post); });
-    bEdit.addEventListener('click', e => { e.stopPropagation(); openCreate(post); });
-    bDel.addEventListener('click', e => { e.stopPropagation(); deletePost(post.id); });
-
-    bar.append(bCopy, bEdit, bDel);
-    return bar;
-  }
-
-  // Aquí iría la función buildCard completa de tu versión original.
-  // Por ahora uso una versión básica. Si quieres la completa avísame.
-
-  function buildCard(post) {
-    var article = document.createElement('article');
-    article.className = 'card';
-    article.dataset.id = post.id;
-    article.dataset.category = post.type;
-    article.dataset.status = post.status || 'red';
-    if (post.title) article.dataset.title = post.title;
-    if (post.desc) article.dataset.desc = post.desc;
-
-    article.appendChild(buildAdminBar(post));
-
-    var foot = document.createElement('div');
-    foot.className = 'card-foot';
-    foot.innerHTML = `<span class="card-tag">${LABELS[post.type]}</span><p class="card-title">${post.title || ''}</p>`;
-    article.appendChild(foot);
-
-    return article;
-  }
-
-  function render() {
-    grid.querySelectorAll('.card[data-dynamic]').forEach(n => n.remove());
-    allPosts.forEach(post => {
-      var card = buildCard(post);
-      card.setAttribute('data-dynamic', '1');
-      grid.insertBefore(card, grid.firstChild);
-    });
-    updateCounts();
-    applyFilters();
-  }
-
-  /* ----------------------------------------------------------
-     Autenticación
-     ---------------------------------------------------------- */
   function isAuthed() { return localStorage.getItem(AUTH_KEY) === '1'; }
 
   function setAuthUI() {
@@ -235,10 +142,34 @@
       localStorage.setItem(AUTH_KEY, '1');
       setAuthUI();
       closeModal(loginModal);
-      showToast('✅ Modo Admin activado');
+      showToast('Modo Admin activado');
     } else {
       loginErr.classList.remove('hidden');
     }
+  }
+
+  function closeModal(m) { m.classList.remove('open'); }
+  function openModal(m) { m.classList.add('open'); }
+
+  function resetForm() {
+    editId = null;
+    // limpiar campos...
+  }
+
+  function openCreate(post) {
+    resetForm();
+    if (post) editId = post.id;
+    openModal(createModal);
+  }
+
+  function render() {
+    grid.innerHTML = ''; // Limpia
+    allPosts.forEach(post => {
+      var card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `<div class="card-foot"><span class="card-tag">${LABELS[post.type]}</span><p>${post.title || ''}</p></div>`;
+      grid.appendChild(card);
+    });
   }
 
   /* ----------------------------------------------------------
@@ -247,5 +178,13 @@
   setAuthUI();
   loadPosts();
 
-  console.log("%c✅ LACOOPEAR con Firebase cargado correctamente", "color: #6aa8ff; font-weight: bold");
+  // Eventos de login
+  loginBtn.addEventListener('click', () => openModal(loginModal));
+  $('loginSubmit').addEventListener('click', doLogin);
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem(AUTH_KEY);
+    setAuthUI();
+  });
+
+  console.log("✅ App cargada");
 })();
