@@ -1,1094 +1,216 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>LACOOPEAR x QBM — Propuestas</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Saira+Condensed:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-<style>
-  :root{
-    --bg:        #070a16;   /* azul-noche profundo */
-    --bg-soft:   #0e1426;
-    --ink:       #e9eeff;   /* casi blanco frío */
-    --muted:     #818cb4;   /* texto secundario */
-    --line:      rgba(255,255,255,.08);   /* hairlines */
-    --line-2:    rgba(255,255,255,.16);
-    --accent:    #6aa8ff;   /* azul claro */
-    --grad:      linear-gradient(135deg,#5fb0ff 0%,#7d8bff 48%,#b06bff 100%); /* azul→violeta */
-    --card-bg:   #0d1426;
-    --radius:    14px;
-    --gap:       14px;
-    --maxw:      1480px;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LACOOPEAR × QBM — Propuestas</title>
+  <meta name="description" content="Galería de propuestas y referencias de LACOOPEAR × QBM. Filtra entre estáticos, videos, copy y tendencias." />
 
-    --font-sans: "Hanken Grotesk", system-ui, -apple-system, Helvetica, Arial, sans-serif;
-    --font-mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  }
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Saira+Condensed:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
-  *{ box-sizing:border-box; }
-  html{ -webkit-text-size-adjust:100%; }
-  body{
-    margin:0;
-    background:var(--bg);
-    background-image:
-      radial-gradient(1100px 600px at 18% -10%, rgba(95,176,255,.16), transparent 60%),
-      radial-gradient(900px 600px at 95% -5%, rgba(176,107,255,.14), transparent 55%);
-    background-attachment:fixed;
-    color:var(--ink);
-    font-family:var(--font-sans);
-    font-size:16px;
-    line-height:1.5;
-    -webkit-font-smoothing:antialiased;
-    text-rendering:optimizeLegibility;
-  }
-  img,video{ display:block; max-width:100%; }
-  a{ color:inherit; }
-
-  /* ============ HEADER ============ */
-  .site-head{
-    max-width:var(--maxw);
-    margin:0 auto;
-    padding:30px 20px 18px;
-  }
-  .brand{
-    display:flex;
-    align-items:baseline;
-    gap:12px;
-    flex-wrap:wrap;
-  }
-  .brand h1{
-    font-family:"Saira Condensed", "Hanken Grotesk", sans-serif;
-    font-size:clamp(30px, 5.2vw, 46px);
-    font-weight:800;
-    letter-spacing:0.01em;
-    text-transform:uppercase;
-    margin:0;
-    line-height:1;
-    white-space:nowrap;
-    background:linear-gradient(120deg,#ffffff 0%,#cfd9ff 55%,#c9b3ff 100%);
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-  }
-  .brand .x{
-    background:var(--grad);
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-    font-weight:700;
-  }
-  .brand .sub{
-    font-family:var(--font-mono);
-    font-size:12px;
-    color:var(--muted);
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-  }
-  .lede{
-    margin:14px 0 0;
-    max-width:52ch;
-    color:var(--muted);
-    font-size:15px;
-  }
-
-  /* ============ FILTROS (sticky) ============ */
-  .filterbar{
-    position:sticky;
-    top:0;
-    z-index:30;
-    background:color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--line);
-  }
-  .filterbar-inner{
-    max-width:var(--maxw);
-    margin:0 auto;
-    padding:12px 20px;
-    display:flex;
-    gap:8px;
-    overflow-x:auto;
-    scrollbar-width:none;
-    -ms-overflow-style:none;
-  }
-  .filterbar-inner::-webkit-scrollbar{ display:none; }
-  .filter{
-    flex:0 0 auto;
-    appearance:none;
-    border:1px solid var(--line-2);
-    background:transparent;
-    color:var(--ink);
-    font-family:var(--font-mono);
-    font-size:13px;
-    letter-spacing:0.02em;
-    padding:8px 14px;
-    border-radius:999px;
-    cursor:pointer;
-    transition:background .15s ease, color .15s ease, border-color .15s ease;
-    white-space:nowrap;
-  }
-  .filter:hover{ border-color:var(--ink); }
-  .filter .count{
-    color:var(--muted);
-    margin-left:6px;
-    font-size:11px;
-  }
-  .filter.active{
-    background:linear-gradient(135deg,#ffffff 0%,#fff3e8 55%,#ffd9b8 100%);
-    color:#1a1305;
-    border-color:transparent;
-    font-weight:700;
-  }
-  .filter.active .count{ color:rgba(26,19,5,.5); }
-
-  /* ============ MASONRY (columnas CSS) ============ */
-  .grid{
-    max-width:var(--maxw);
-    margin:0 auto;
-    padding:24px 20px 80px;
-    column-gap:var(--gap);
-    column-count:2;            /* móvil */
-  }
-  @media (min-width:640px){ .grid{ column-count:3; } }
-  @media (min-width:1000px){ .grid{ column-count:4; } }
-  @media (min-width:1360px){ .grid{ column-count:5; } }
-
-  .card{
-    break-inside:avoid;
-    margin:0 0 var(--gap);
-    background:var(--card-bg);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    overflow:hidden;
-    /* perf: no renderiza tarjetas fuera de pantalla */
-    content-visibility:auto;
-    contain-intrinsic-size:auto 360px;
-    transition:border-color .15s ease, transform .15s ease;
-  }
-  .card.is-hidden{ display:none; }
-  .card:hover{ border-color:rgba(125,139,255,.45); box-shadow:0 0 0 1px rgba(125,139,255,.15), 0 14px 40px rgba(4,8,24,.5); }
-
-  /* media (imagen / video) */
-  .card--zoom .media{ cursor:zoom-in; position:relative; }
-  .card .media img,
-  .card .media video{
-    width:100%;
-    height:auto;
-    display:block;
-    background:var(--bg-soft);
-  }
-  .play-badge{
-    position:absolute; inset:0;
-    display:flex; align-items:center; justify-content:center;
-    pointer-events:none;
-  }
-  .play-badge span{
-    width:48px; height:48px; border-radius:50%;
-    background:var(--grad);
-    box-shadow:0 8px 24px rgba(95,140,255,.45);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .play-badge span::before{
-    content:""; display:block;
-    border-left:13px solid #0a0d18;
-    border-top:9px solid transparent;
-    border-bottom:9px solid transparent;
-    margin-left:3px;
-  }
-
-  /* pie de tarjeta */
-  .card-foot{
-    padding:11px 13px 13px;
-    display:flex;
-    flex-direction:column;
-    gap:5px;
-  }
-  .card-tag{
-    align-self:flex-start;
-    font-family:var(--font-mono);
-    font-size:10.5px;
-    letter-spacing:0.09em;
-    text-transform:uppercase;
-    color:var(--muted);
-    border:1px solid var(--line-2);
-    border-radius:999px;
-    padding:2px 8px;
-  }
-  .card-title{
-    font-size:14.5px;
-    font-weight:600;
-    letter-spacing:-0.01em;
-    margin:0;
-    line-height:1.3;
-    text-wrap:balance;
-  }
-
-  /* tarjeta COPY */
-  .card--copy{ }
-  .card--copy .copy-body{
-    padding:20px 18px;
-  }
-  .card--copy .copy-text{
-    font-size:17px;
-    line-height:1.45;
-    font-weight:500;
-    margin:0;
-    letter-spacing:-0.01em;
-    text-wrap:pretty;
-  }
-  .card--copy .copy-text strong{
-    background:var(--grad);
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-    font-weight:700;
-  }
-
-  /* tarjeta TENDENCIAS */
-  .card--tendencias .trend-body{ padding:18px; }
-  .card--tendencias h3{
-    font-size:17px;
-    font-weight:700;
-    letter-spacing:-0.015em;
-    margin:0 0 12px;
-    line-height:1.25;
-    text-wrap:balance;
-  }
-  .card--tendencias ul{
-    list-style:none;
-    margin:0;
-    padding:0;
-    display:flex;
-    flex-direction:column;
-    gap:2px;
-  }
-  .card--tendencias li a{
-    display:flex;
-    align-items:baseline;
-    gap:8px;
-    font-family:var(--font-mono);
-    font-size:13px;
-    text-decoration:none;
-    color:var(--ink);
-    padding:7px 0;
-    border-top:1px solid var(--line);
-    transition:color .15s ease;
-  }
-  .card--tendencias li:first-child a{ border-top:none; }
-  .card--tendencias li a:hover{ color:var(--accent); }
-  .card--tendencias li a::before{
-    content:"↗";
-    color:var(--muted);
-    flex:0 0 auto;
-  }
-  .card--tendencias li a:hover::before{ color:var(--accent); }
-  .card--tendencias li a .lnk{
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-  }
-
-  /* ============ LIGHTBOX ============ */
-  .lightbox{
-    position:fixed; inset:0;
-    z-index:100;
-    background:rgba(4,6,14,.94);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-  }
-  .lightbox.open{ display:flex; }
-  .lightbox-content{
-    max-width:92vw;
-    max-height:90vh;
-  }
-  .lightbox-content img,
-  .lightbox-content video{
-    max-width:92vw;
-    max-height:90vh;
-    width:auto; height:auto;
-    border-radius:8px;
-    box-shadow:0 30px 80px rgba(0,0,0,.5);
-  }
-  .lightbox-close{
-    position:fixed;
-    top:16px; right:18px;
-    width:42px; height:42px;
-    border-radius:50%;
-    border:none;
-    background:rgba(255,255,255,.12);
-    color:#fff;
-    font-size:22px;
-    cursor:pointer;
-    line-height:1;
-  }
-  .lightbox-close:hover{ background:rgba(255,255,255,.22); }
-
-  .empty{
-    max-width:var(--maxw);
-    margin:0 auto;
-    padding:60px 20px;
-    text-align:center;
-    color:var(--muted);
-    font-family:var(--font-mono);
-    font-size:13px;
-    display:none;
-  }
-
-  footer.site-foot{
-    max-width:var(--maxw);
-    margin:0 auto;
-    padding:32px 20px 56px;
-    border-top:1px solid var(--line);
-    font-family:var(--font-mono);
-    font-size:11.5px;
-    letter-spacing:0.08em;
-    color:var(--muted);
-    text-transform:uppercase;
-    text-align:center;
-    display:flex; align-items:center; justify-content:center; gap:7px;
-  }
-  footer.site-foot .cr{ font-size:13px; color:var(--ink); }
-
-  /* ============ ADMIN / AUTH ============ */
-  .admin-bar{
-    position:fixed; top:12px; right:14px; z-index:50;
-    display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px;
-    max-width:min(70vw, 560px);
-  }
-  .admin-bar .btn{ backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
-    background:rgba(10,16,32,.6); }
-  .admin-bar .btn--primary{ background:var(--grad); }
-  .btn{
-    appearance:none; cursor:pointer; font-family:var(--font-mono);
-    font-size:12.5px; letter-spacing:.02em; padding:9px 15px; border-radius:999px;
-    border:1px solid var(--line-2); background:transparent; color:var(--ink);
-    display:inline-flex; align-items:center; gap:7px; transition:all .15s ease;
-  }
-  .btn:hover{ border-color:var(--ink); }
-  .btn--primary{ background:var(--grad); color:#0a0d18; border-color:transparent; font-weight:700; }
-  .btn--primary:hover{ filter:brightness(1.06); }
-  .btn--sm{ padding:6px 11px; font-size:11px; }
-  .hidden{ display:none !important; }
-
-  .modal{
-    position:fixed; inset:0; z-index:120;
-    background:rgba(4,6,14,.8); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
-    display:none; align-items:flex-start; justify-content:center;
-    padding:28px 16px; overflow-y:auto;
-  }
-  .modal.open{ display:flex; }
-  .modal-card{
-    width:100%; max-width:520px; margin:auto;
-    background:#0c1322; border:1px solid var(--line-2); border-radius:18px;
-    padding:24px; box-shadow:0 30px 90px rgba(0,0,0,.6);
-  }
-  .modal-card h2{ margin:0 0 4px; font-size:21px; font-weight:800; letter-spacing:-.02em; }
-  .modal-sub{ margin:0 0 18px; color:var(--muted); font-size:13px; font-family:var(--font-mono); }
-  .field{ margin-bottom:14px; }
-  .field > label{ display:block; font-family:var(--font-mono); font-size:11px; letter-spacing:.05em;
-    text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
-  .input{ width:100%; background:#0a1020; border:1px solid var(--line-2); color:var(--ink);
-    border-radius:10px; padding:11px 12px; font-family:var(--font-sans); font-size:15px; }
-  .input::placeholder{ color:#5a6390; }
-  .input:focus{ outline:none; border-color:#7d8bff; box-shadow:0 0 0 3px rgba(125,139,255,.18); }
-  textarea.input{ min-height:100px; resize:vertical; line-height:1.45; }
-  .seg{ display:flex; gap:6px; flex-wrap:wrap; }
-  .seg button{ flex:1 1 auto; min-width:72px; padding:10px 8px; border-radius:10px;
-    border:1px solid var(--line-2); background:transparent; color:var(--ink);
-    font-family:var(--font-mono); font-size:12px; cursor:pointer; transition:all .15s ease; }
-  .seg button.on{ background:var(--grad); color:#0a0d18; border-color:transparent; font-weight:700; }
-  .note{ font-family:var(--font-mono); font-size:11px; color:var(--muted); margin-top:7px; line-height:1.55; }
-  .err{ color:#e5746f; }
-  .link-row{ display:flex; gap:6px; margin-bottom:7px; }
-  .link-row .input{ flex:1; min-width:0; }
-  .link-row .rm{ flex:0 0 auto; width:40px; border-radius:10px; border:1px solid var(--line-2);
-    background:transparent; color:var(--muted); cursor:pointer; font-size:18px; line-height:1; }
-  .link-row .rm:hover{ color:#e5484d; border-color:#e5484d; }
-  .modal-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:22px; }
-  .img-preview{ margin-top:10px; border-radius:10px; overflow:hidden; border:1px solid var(--line); display:none; }
-  .img-preview img{ width:100%; display:block; }
-
-  /* barra de admin sobre tarjetas creadas */
-  .card{ position:relative; }
-  .card-admin{ position:absolute; top:8px; right:8px; gap:6px; z-index:6; display:none; }
-  body.is-admin .card[data-dynamic] .card-admin{ display:flex; }
-  .card-admin button{ width:31px; height:31px; border-radius:9px; border:none; cursor:pointer;
-    background:rgba(8,12,24,.82); color:#fff; backdrop-filter:blur(4px);
-    font-size:14px; display:flex; align-items:center; justify-content:center; transition:background .15s ease; }
-  .card-admin button:hover{ background:rgba(125,139,255,.9); }
-  .card-admin .del:hover{ background:#e5484d; }
-  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
-    background:var(--grad); color:#0a0d18; font-family:var(--font-mono); font-size:13px; font-weight:700;
-    padding:11px 18px; border-radius:999px; z-index:200; opacity:0; pointer-events:none;
-    transition:opacity .2s ease, transform .2s ease; box-shadow:0 12px 32px rgba(0,0,0,.4); }
-  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
-
-  /* reproductor incrustado (YouTube / Vimeo) en el lightbox */
-  .embed-wrap{ position:relative; width:min(92vw, 1100px); aspect-ratio:16/9; }
-  .embed-wrap--v{ width:auto; height:min(86vh, 880px); aspect-ratio:9/16; }
-  .embed-wrap iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; border-radius:10px;
-    box-shadow:0 30px 80px rgba(0,0,0,.5); background:#000; }
-  .embed-fallback{ position:absolute; left:0; right:0; bottom:-30px; text-align:center;
-    font-family:var(--font-mono); font-size:12px; color:rgba(255,255,255,.7); text-decoration:none; }
-  .embed-fallback:hover{ color:#fff; text-decoration:underline; }
-</style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-<!--
-  ╔══════════════════════════════════════════════════════════════════════╗
-  ║  CÓMO AGREGAR CONTENIDO (copiar / pegar bloques)                       ║
-  ║                                                                        ║
-  ║  1. Sube tu archivo a la carpeta /media (imágenes o .mp4).             ║
-  ║  2. Copia uno de los 4 BLOQUES-PLANTILLA de abajo.                     ║
-  ║  3. Pégalo dentro de <main id="grid"> ... </main>.                     ║
-  ║  4. Cambia el src / texto / enlaces. ¡Listo!                          ║
-  ║                                                                        ║
-  ║  El filtro y el lightbox funcionan solos: solo respeta el             ║
-  ║  data-category de cada tarjeta (estatico | video | copy | tendencias).║
-  ╚══════════════════════════════════════════════════════════════════════╝
+  <!--
+    ╔══════════════════════════════════════════════════════════════════════╗
+    ║  CÓMO AGREGAR CONTENIDO                                                ║
+    ║                                                                        ║
+    ║  Forma fácil (recomendada): entra con el botón "Admin" (arriba a la    ║
+    ║  derecha) y usa "+ Crear posteo". No necesitas tocar el código.        ║
+    ║                                                                        ║
+    ║  Forma manual: sube tu archivo a /media, copia uno de los bloques de   ║
+    ║  abajo y pégalo dentro de <main id="grid"> … </main>. El filtro y el   ║
+    ║  lightbox funcionan solos según el data-category de cada tarjeta       ║
+    ║  (estatico | video | copy | tendencias).                              ║
+    ╚══════════════════════════════════════════════════════════════════════╝
 
-  ── BLOQUE: ESTÁTICO (imagen) ───────────────────────────────────────────
-  <article class="card card--zoom" data-category="estatico">
-    <div class="media">
-      <img src="media/TU-IMAGEN.jpg" alt="Descripción" loading="lazy" />
-    </div>
-    <div class="card-foot">
-      <span class="card-tag">Estático</span>
-      <p class="card-title">Título de la propuesta</p>
-    </div>
-  </article>
+    ── BLOQUE: ESTÁTICO (imagen) ───────────────────────────────────────────
+    <article class="card card--zoom" data-category="estatico">
+      <div class="media">
+        <img src="media/TU-IMAGEN.jpg" alt="Descripción" loading="lazy" />
+      </div>
+      <div class="card-foot">
+        <span class="card-tag">Estático</span>
+        <p class="card-title">Título de la propuesta</p>
+      </div>
+    </article>
 
-  ── BLOQUE: VIDEO (.mp4) ─────────────────────────────────────────────────
-  <article class="card card--zoom" data-category="video">
-    <div class="media">
-      <video src="media/TU-VIDEO.mp4" poster="media/video-poster.svg"
-             autoplay muted loop playsinline preload="none"></video>
-      <div class="play-badge"><span></span></div>
-    </div>
-    <div class="card-foot">
-      <span class="card-tag">Video</span>
-      <p class="card-title">Título del reel</p>
-    </div>
-  </article>
+    ── BLOQUE: VIDEO (.mp4) ─────────────────────────────────────────────────
+    <article class="card card--zoom" data-category="video">
+      <div class="media">
+        <video src="media/TU-VIDEO.mp4" poster="media/video-poster.svg"
+               autoplay muted loop playsinline preload="none"></video>
+        <div class="play-badge"><span></span></div>
+      </div>
+      <div class="card-foot">
+        <span class="card-tag">Video</span>
+        <p class="card-title">Título del reel</p>
+      </div>
+    </article>
 
-  ── BLOQUE: COPY (texto editable) ────────────────────────────────────────
-  <article class="card card--copy" data-category="copy">
-    <div class="copy-body">
-      <p class="copy-text">Escribe aquí tu <strong>idea de copy</strong>. Edita este texto directamente.</p>
-    </div>
-    <div class="card-foot">
-      <span class="card-tag">Copy</span>
-      <p class="card-title">Concepto / campaña</p>
-    </div>
-  </article>
+    ── BLOQUE: COPY (texto) ─────────────────────────────────────────────────
+    <article class="card card--copy" data-category="copy">
+      <div class="copy-body">
+        <p class="copy-text">Escribe aquí tu <strong>idea de copy</strong>.</p>
+      </div>
+      <div class="card-foot">
+        <span class="card-tag">Copy</span>
+        <p class="card-title">Concepto / campaña</p>
+      </div>
+    </article>
 
-  ── BLOQUE: TENDENCIAS (lista de enlaces) ────────────────────────────────
-  <article class="card card--tendencias" data-category="tendencias">
-    <div class="trend-body">
-      <h3>¿De qué trata esta tarjeta?</h3>
-      <ul>
-        <li><a href="https://..." target="_blank" rel="noopener"><span class="lnk">Nombre del enlace</span></a></li>
-        <li><a href="https://..." target="_blank" rel="noopener"><span class="lnk">Otro enlace</span></a></li>
-      </ul>
-    </div>
-    <div class="card-foot">
-      <span class="card-tag">Tendencias</span>
-    </div>
-  </article>
--->
+    ── BLOQUE: TENDENCIAS (lista de enlaces) ────────────────────────────────
+    <article class="card card--tendencias" data-category="tendencias">
+      <div class="trend-body">
+        <h3>¿De qué trata esta tarjeta?</h3>
+        <ul class="trend-links">
+          <li><a href="https://..." target="_blank" rel="noopener"><span class="lnk">Nombre del enlace</span></a></li>
+        </ul>
+      </div>
+      <div class="card-foot">
+        <span class="card-tag">Tendencias</span>
+      </div>
+    </article>
+  -->
 
-<header class="site-head">
-  <div class="brand">
-    <h1>LACOOPEAR <span class="x">×</span> QBM</h1>
-    <span class="sub">Propuestas / Portfolio</span>
-  </div>
-  <p class="lede">Galería de ideas y referencias. Filtra por tipo y abre cualquier pieza para verla en grande.</p>
+  <!-- ============ BARRA DE ADMINISTRACIÓN (flotante) ============ -->
   <div class="admin-bar" id="adminBar">
-    <button class="btn" id="loginBtn">🔒 Admin</button>
-    <button class="btn btn--primary hidden" id="createBtn">+ Crear posteo</button>
-    <button class="btn hidden" id="exportBtn">Exportar respaldo</button>
-    <button class="btn hidden" id="importBtn">Importar respaldo</button>
-    <button class="btn hidden" id="logoutBtn">Salir</button>
+    <button class="btn" id="loginBtn" type="button">🔒 Admin</button>
+    <button class="btn btn--primary hidden" id="createBtn" type="button">+ Crear posteo</button>
+    <button class="btn hidden" id="exportBtn" type="button">Exportar respaldo</button>
+    <button class="btn hidden" id="importBtn" type="button">Importar respaldo</button>
+    <button class="btn hidden" id="logoutBtn" type="button">Salir</button>
     <input type="file" id="importFile" accept="application/json" class="hidden" />
   </div>
-</header>
 
-<nav class="filterbar">
-  <div class="filterbar-inner" id="filters">
-    <button class="filter active" data-filter="todos">Todos <span class="count"></span></button>
-    <button class="filter" data-filter="estatico">Estáticos <span class="count"></span></button>
-    <button class="filter" data-filter="video">Videos <span class="count"></span></button>
-    <button class="filter" data-filter="copy">Copy <span class="count"></span></button>
-    <button class="filter" data-filter="tendencias">Tendencias <span class="count"></span></button>
-  </div>
-</nav>
-
-<!-- ═══════════════ GALERÍA — las tarjetas creadas desde "+ Crear posteo" aparecen aquí ═══════════════ -->
-<!-- (También puedes pegar bloques-plantilla manualmente entre <main> y </main>) -->
-<main class="grid" id="grid">
-</main>
-
-<p class="empty" id="empty">No hay piezas en esta categoría todavía.</p>
-
-<footer class="site-foot">
-  All rights reserved <span class="cr">©</span> Powered by QBAYMEDIA
-</footer>
-
-<!-- LOGIN MODAL -->
-<div class="modal" id="loginModal">
-  <div class="modal-card" style="max-width:380px">
-    <h2>Acceso</h2>
-    <p class="modal-sub">Ingresa para crear y administrar posteos.</p>
-    <div class="field">
-      <label>Usuario</label>
-      <input class="input" id="loginUser" autocomplete="username" />
+  <!-- ============ HEADER ============ -->
+  <header class="site-head">
+    <div class="brand">
+      <h1 class="brand__title">LACOOPEAR <span class="brand__x">×</span> QBM</h1>
+      <p class="brand__sub">Propuestas / Portfolio</p>
     </div>
-    <div class="field">
-      <label>Contraseña</label>
-      <input class="input" id="loginPass" type="password" autocomplete="current-password" />
-    </div>
-    <p class="note err hidden" id="loginErr">Usuario o contraseña incorrectos.</p>
-    <div class="modal-actions">
-      <button class="btn" id="loginCancel" type="button">Cancelar</button>
-      <button class="btn btn--primary" id="loginSubmit" type="button">Entrar</button>
-    </div>
-  </div>
-</div>
+    <p class="lede">Galería de ideas y referencias. Filtra por tipo y abre cualquier pieza para verla en grande.</p>
+  </header>
 
-<!-- CREATE / EDIT MODAL -->
-<div class="modal" id="createModal">
-  <div class="modal-card">
-    <h2 id="createTitle">Nuevo posteo</h2>
-    <p class="modal-sub">Elige el tipo y completa los datos. Se guarda en este navegador.</p>
+  <!-- ============ FILTROS ============ -->
+  <nav class="filterbar" aria-label="Filtros de categoría">
+    <div class="filterbar__inner" id="filters">
+      <button class="filter" type="button" data-filter="todos" aria-pressed="true">Todos <span class="filter__count"></span></button>
+      <button class="filter" type="button" data-filter="estatico" aria-pressed="false">Estáticos <span class="filter__count"></span></button>
+      <button class="filter" type="button" data-filter="video" aria-pressed="false">Videos <span class="filter__count"></span></button>
+      <button class="filter" type="button" data-filter="copy" aria-pressed="false">Copy <span class="filter__count"></span></button>
+      <button class="filter" type="button" data-filter="tendencias" aria-pressed="false">Tendencias <span class="filter__count"></span></button>
+    </div>
+  </nav>
 
-    <div class="field">
-      <label>Tipo de tarjeta</label>
-      <div class="seg" id="typeSeg">
-        <button type="button" data-type="estatico" class="on">Estático</button>
-        <button type="button" data-type="video">Video</button>
-        <button type="button" data-type="copy">Copy</button>
-        <button type="button" data-type="tendencias">Tendencias</button>
+  <!-- ============ GALERÍA ============ -->
+  <!-- Las tarjetas creadas desde "+ Crear posteo" se insertan aquí. -->
+  <!-- También puedes pegar bloques-plantilla manualmente entre <main> y </main>. -->
+  <main class="grid" id="grid">
+  </main>
+
+  <p class="empty" id="empty">No hay piezas en esta categoría todavía.</p>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-foot">
+    All rights reserved <span class="cr">©</span> Powered by QBAYMEDIA
+  </footer>
+
+  <!-- ============ MODAL: LOGIN ============ -->
+  <div class="modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginHeading">
+    <div class="modal-card modal-card--narrow">
+      <h2 id="loginHeading">Acceso</h2>
+      <p class="modal-sub">Ingresa para crear y administrar posteos.</p>
+      <div class="field">
+        <label for="loginUser">Usuario</label>
+        <input class="input" id="loginUser" type="text" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="loginPass">Contraseña</label>
+        <input class="input" id="loginPass" type="password" autocomplete="current-password" />
+      </div>
+      <p class="note err hidden" id="loginErr">Usuario o contraseña incorrectos.</p>
+      <div class="modal-actions">
+        <button class="btn" id="loginCancel" type="button">Cancelar</button>
+        <button class="btn btn--primary" id="loginSubmit" type="button">Entrar</button>
       </div>
     </div>
+  </div>
 
-    <div class="field f-title">
-      <label>Título <span style="text-transform:none">(opcional)</span></label>
-      <input class="input" id="fTitle" placeholder="Ej: Reel teaser — lanzamiento" />
-    </div>
+  <!-- ============ MODAL: CREAR / EDITAR ============ -->
+  <div class="modal" id="createModal" role="dialog" aria-modal="true" aria-labelledby="createTitle">
+    <div class="modal-card">
+      <h2 id="createTitle">Nuevo posteo</h2>
+      <p class="modal-sub">Elige el tipo y completa los datos. Se guarda en este navegador.</p>
 
-    <!-- ESTÁTICO -->
-    <div class="field f-estatico">
-      <label>Imagen</label>
-      <input class="input" id="fImage" type="file" accept="image/*" />
-      <div class="img-preview" id="imgPreview"><img alt="" /></div>
-      <p class="note">Se guarda dentro del navegador. Se reescala automáticamente para no ocupar demasiado.</p>
-    </div>
+      <div class="field">
+        <label id="typeLabel">Tipo de tarjeta</label>
+        <div class="seg" id="typeSeg" role="group" aria-labelledby="typeLabel">
+          <button type="button" data-type="estatico" aria-pressed="true">Estático</button>
+          <button type="button" data-type="video" aria-pressed="false">Video</button>
+          <button type="button" data-type="copy" aria-pressed="false">Copy</button>
+          <button type="button" data-type="tendencias" aria-pressed="false">Tendencias</button>
+        </div>
+      </div>
 
-    <!-- VIDEO -->
-    <div class="field f-video hidden">
-      <label>Video — archivo, enlace directo o YouTube/Vimeo</label>
-      <input class="input" id="fVideo" placeholder="media/video.mp4  ·  https://.../video.mp4  ·  youtu.be/..." />
-      <p class="note">Acepta tres formas: archivo de la carpeta <strong>media/</strong>, un <strong>enlace directo</strong> a un .mp4/.webm, o un enlace de <strong>YouTube, YouTube Shorts o Vimeo</strong> (se incrusta automáticamente). Así no dependes de alojamiento propio.</p>
-      <label style="margin-top:14px">Portada / poster (opcional) — ruta o enlace</label>
-      <input class="input" id="fPoster" placeholder="media/video-poster.svg  ·  https://.../portada.jpg" />
-      <p class="note">Imagen que se ve antes de reproducir. También admite ruta local o enlace directo a una imagen.</p>
-    </div>
+      <div class="field f-title">
+        <label for="fTitle">Título <span class="lower">(opcional)</span></label>
+        <input class="input" id="fTitle" type="text" placeholder="Ej: Reel teaser — lanzamiento" />
+      </div>
 
-    <!-- COPY -->
-    <div class="field f-copy hidden">
-      <label>Texto</label>
-      <textarea class="input" id="fCopy" placeholder="Escribe tu idea de copy aquí..."></textarea>
-      <p class="note">Rodea palabras con <strong>**dobles asteriscos**</strong> para resaltarlas en gradiente.</p>
-    </div>
+      <!-- ESTÁTICO -->
+      <div class="field f-estatico">
+        <label for="fImage">Imagen</label>
+        <input class="input" id="fImage" type="file" accept="image/*" />
+        <div class="img-preview" id="imgPreview"><img alt="Vista previa" /></div>
+        <p class="note">Se guarda dentro del navegador. Se reescala automáticamente para no ocupar demasiado.</p>
+      </div>
 
-    <!-- TENDENCIAS -->
-    <div class="field f-tendencias hidden">
-      <label>¿De qué trata? (encabezado)</label>
-      <input class="input" id="fH3" placeholder="Tendencias visuales Q3 — texturas naturales" />
-      <label style="margin-top:14px">Enlaces</label>
-      <div id="linkList"></div>
-      <button class="btn btn--sm" id="addLink" type="button">+ Añadir enlace</button>
-    </div>
+      <!-- VIDEO -->
+      <div class="field f-video hidden">
+        <label for="fVideo">Video — archivo, enlace directo o YouTube/Vimeo</label>
+        <input class="input" id="fVideo" type="text" placeholder="media/video.mp4  ·  https://.../video.mp4  ·  youtu.be/..." />
+        <p class="note">Acepta tres formas: archivo de la carpeta <strong>media/</strong>, un <strong>enlace directo</strong> a un .mp4/.webm, o un enlace de <strong>YouTube, YouTube Shorts o Vimeo</strong> (se incrusta automáticamente). Así no dependes de alojamiento propio.</p>
+        <label for="fPoster" style="margin-top:14px">Portada / poster (opcional) — ruta o enlace</label>
+        <input class="input" id="fPoster" type="text" placeholder="media/video-poster.svg  ·  https://.../portada.jpg" />
+        <p class="note">Imagen que se ve antes de reproducir. También admite ruta local o enlace directo a una imagen.</p>
+      </div>
 
-    <div class="modal-actions">
-      <button class="btn" id="createCancel" type="button">Cancelar</button>
-      <button class="btn btn--primary" id="saveBtn" type="button">Guardar posteo</button>
+      <!-- COPY -->
+      <div class="field f-copy hidden">
+        <label for="fCopy">Texto</label>
+        <textarea class="input" id="fCopy" placeholder="Escribe tu idea de copy aquí..."></textarea>
+        <p class="note">Rodea palabras con <strong>**dobles asteriscos**</strong> para resaltarlas en gradiente.</p>
+      </div>
+
+      <!-- TENDENCIAS -->
+      <div class="field f-tendencias hidden">
+        <label for="fH3">¿De qué trata? (encabezado)</label>
+        <input class="input" id="fH3" type="text" placeholder="Tendencias visuales Q3 — texturas naturales" />
+        <label style="margin-top:14px">Enlaces</label>
+        <div id="linkList"></div>
+        <button class="btn btn--sm" id="addLink" type="button">+ Añadir enlace</button>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn" id="createCancel" type="button">Cancelar</button>
+        <button class="btn btn--primary" id="saveBtn" type="button">Guardar posteo</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="toast" id="toast"></div>
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox">
-  <button class="lightbox-close" id="lbClose" aria-label="Cerrar">×</button>
-  <div class="lightbox-content" id="lbContent"></div>
-</div>
+  <!-- ============ LIGHTBOX ============ -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Vista ampliada">
+    <button class="lightbox-close" id="lbClose" type="button" aria-label="Cerrar">×</button>
+    <div class="lightbox-content" id="lbContent"></div>
+  </div>
 
-<script>
-(function(){
-  var grid    = document.getElementById('grid');
-  var filters = document.getElementById('filters');
-  var empty   = document.getElementById('empty');
-  var lb      = document.getElementById('lightbox');
-  var lbBody  = document.getElementById('lbContent');
-  var lbClose = document.getElementById('lbClose');
-
-  /* ---------- Conteos por categoría ---------- */
-  function updateCounts(){
-    var cards = grid.querySelectorAll('.card');
-    var totals = { todos:0, estatico:0, video:0, copy:0, tendencias:0 };
-    cards.forEach(function(c){
-      totals.todos++;
-      var cat = c.dataset.category;
-      if (totals[cat] !== undefined) totals[cat]++;
-    });
-    filters.querySelectorAll('.filter').forEach(function(btn){
-      var span = btn.querySelector('.count');
-      if (span) span.textContent = totals[btn.dataset.filter] || 0;
-    });
-  }
-
-  /* ---------- Filtrado ---------- */
-  function applyFilter(cat){
-    var visible = 0;
-    grid.querySelectorAll('.card').forEach(function(c){
-      var show = (cat === 'todos') || (c.dataset.category === cat);
-      c.classList.toggle('is-hidden', !show);
-      if (show) visible++;
-    });
-    empty.style.display = visible === 0 ? 'block' : 'none';
-  }
-
-  filters.addEventListener('click', function(e){
-    var btn = e.target.closest('.filter');
-    if (!btn) return;
-    filters.querySelectorAll('.filter').forEach(function(b){ b.classList.remove('active'); });
-    btn.classList.add('active');
-    applyFilter(btn.dataset.filter);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-
-  /* ---------- Lightbox (delegación: sirve para tarjetas nuevas) ---------- */
-  function openLightbox(node){
-    lbBody.innerHTML = '';
-    lbBody.appendChild(node);
-    lb.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeLightbox(){
-    lb.classList.remove('open');
-    lbBody.innerHTML = '';
-    document.body.style.overflow = '';
-  }
-
-  grid.addEventListener('click', function(e){
-    var card = e.target.closest('.card--zoom');
-    if (!card) return;
-    var img = card.querySelector('.media img');
-    var vid = card.querySelector('.media video');
-    if (img){
-      var clone = new Image();
-      clone.src = img.currentSrc || img.src;
-      clone.alt = img.alt || '';
-      openLightbox(clone);
-    } else if (vid){
-      // si no hay archivo de video aún, mostramos el poster
-      if (!vid.getAttribute('src')){
-        var poster = vid.getAttribute('poster');
-        if (poster){ var p = new Image(); p.src = poster; openLightbox(p); }
-        return;
-      }
-      var v = document.createElement('video');
-      v.src = vid.currentSrc || vid.src;
-      v.controls = true; v.autoplay = true; v.loop = true; v.playsInline = true;
-      openLightbox(v);
-    }
-  });
-
-  lbClose.addEventListener('click', closeLightbox);
-  lb.addEventListener('click', function(e){ if (e.target === lb) closeLightbox(); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeLightbox(); });
-
-  function reapply(){
-    var active = filters.querySelector('.filter.active');
-    applyFilter(active ? active.dataset.filter : 'todos');
-  }
-
-  // API para el panel de administración (tarjetas creadas dinámicamente)
-  window.Gallery = { updateCounts: updateCounts, reapply: reapply };
-
-  updateCounts();
-})();
-</script>
-
-<script>
-/* ════════════════ PANEL DE ADMINISTRACIÓN ════════════════ */
-(function(){
-  var USER = 'tpuds12';
-  var PASS = 'tpuds12lacoopear_';
-  var KEY = 'lcp_posts_v2';
-  var AUTHKEY = 'lcp_auth_v1';
-
-  var $ = function(id){ return document.getElementById(id); };
-  var grid = $('grid');
-
-  // --- elementos ---
-  var loginBtn=$('loginBtn'), createBtn=$('createBtn'), exportBtn=$('exportBtn'),
-      importBtn=$('importBtn'), logoutBtn=$('logoutBtn'), importFile=$('importFile');
-  var loginModal=$('loginModal'), createModal=$('createModal');
-  var loginUser=$('loginUser'), loginPass=$('loginPass'), loginErr=$('loginErr');
-  var typeSeg=$('typeSeg'), fTitle=$('fTitle'), fImage=$('fImage'), imgPreview=$('imgPreview'),
-      fVideo=$('fVideo'), fPoster=$('fPoster'), fCopy=$('fCopy'), fH3=$('fH3'),
-      linkList=$('linkList'), createTitle=$('createTitle');
-  var toast=$('toast');
-
-  var currentType='estatico', editId=null, pendingImg=null, toastT;
-
-  // --- almacenamiento ---
-  function getPosts(){ try{ return JSON.parse(localStorage.getItem(KEY)) || []; }catch(e){ return []; } }
-  function setPosts(arr){ localStorage.setItem(KEY, JSON.stringify(arr)); }
-
-  function showToast(msg){
-    toast.textContent=msg; toast.classList.add('show');
-    clearTimeout(toastT); toastT=setTimeout(function(){ toast.classList.remove('show'); }, 2200);
-  }
-
-  // --- helpers de texto ---
-  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  function applyBold(container, text){
-    var parts=String(text||'').split('**');
-    parts.forEach(function(p,i){
-      if(i%2===1){ var s=document.createElement('strong'); s.textContent=p; container.appendChild(s); }
-      else { container.appendChild(document.createTextNode(p)); }
-    });
-  }
-  function boldHtml(s){
-    var parts=String(s||'').split('**'), out='';
-    parts.forEach(function(p,i){ out += i%2 ? '<strong>'+esc(p)+'</strong>' : esc(p); });
-    return out;
-  }
-  var LABELS={ estatico:'Estático', video:'Video', copy:'Copy', tendencias:'Tendencias' };
-
-  // --- detección de enlaces incrustables (YouTube / Vimeo) ---
-  function getEmbed(url){
-    if(!url) return null;
-    var u=String(url).trim();
-    var yt=u.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
-    if(yt){
-      var id=yt[1], vertical=/shorts\//.test(u);
-      return { provider:'youtube', id:id, vertical:vertical,
-        embed:'https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&rel=0&playsinline=1',
-        sstatic:'https://www.youtube-nocookie.com/embed/'+id+'?rel=0',
-        watch:'https://youtu.be/'+id,
-        thumb:'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg' };
-    }
-    var vm=u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-    if(vm){
-      var vid=vm[1];
-      return { provider:'vimeo', id:vid, vertical:false,
-        embed:'https://player.vimeo.com/video/'+vid+'?autoplay=1',
-        sstatic:'https://player.vimeo.com/video/'+vid,
-        watch:'https://vimeo.com/'+vid,
-        thumb:'' };
-    }
-    return null;
-  }
-  function playBadge(){ var pb=document.createElement('div'); pb.className='play-badge'; pb.appendChild(document.createElement('span')); return pb; }
-  function openEmbed(embed){
-    var lb=document.getElementById('lightbox'), body=document.getElementById('lbContent');
-    body.innerHTML='';
-    var wrap=document.createElement('div'); wrap.className='embed-wrap'+(embed.vertical?' embed-wrap--v':'');
-    var ifr=document.createElement('iframe');
-    ifr.src=embed.embed; ifr.setAttribute('allow','autoplay; fullscreen; encrypted-media; picture-in-picture');
-    ifr.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
-    ifr.setAttribute('allowfullscreen','');
-    wrap.appendChild(ifr);
-    if(embed.watch){
-      var fb=document.createElement('a'); fb.className='embed-fallback'; fb.href=embed.watch;
-      fb.target='_blank'; fb.rel='noopener'; fb.textContent='¿No carga? Ver en origen ↗';
-      wrap.appendChild(fb);
-    }
-    body.appendChild(wrap);
-    lb.classList.add('open'); document.body.style.overflow='hidden';
-  }
-
-  // --- construir tarjeta en el DOM ---
-  function foot(post, tagOnly){
-    var f=document.createElement('div'); f.className='card-foot';
-    var t=document.createElement('span'); t.className='card-tag'; t.textContent=LABELS[post.type]; f.appendChild(t);
-    if(!tagOnly && post.title){ var p=document.createElement('p'); p.className='card-title'; p.textContent=post.title; f.appendChild(p); }
-    return f;
-  }
-  function buildCard(post){
-    var art=document.createElement('article');
-    art.setAttribute('data-dynamic','1'); art.dataset.id=post.id; art.dataset.category=post.type;
-    art.className='card';
-    if(post.type==='estatico') art.classList.add('card--zoom');
-    if(post.type==='video' && !getEmbed(post.video)) art.classList.add('card--zoom');
-    if(post.type==='copy') art.classList.add('card--copy');
-    if(post.type==='tendencias') art.classList.add('card--tendencias');
-
-    // toolbar admin
-    var bar=document.createElement('div'); bar.className='card-admin';
-    var bCopy=document.createElement('button'); bCopy.className='copy'; bCopy.title='Copiar HTML'; bCopy.textContent='⧉';
-    var bEdit=document.createElement('button'); bEdit.className='edit'; bEdit.title='Editar'; bEdit.textContent='✎';
-    var bDel=document.createElement('button'); bDel.className='del'; bDel.title='Eliminar'; bDel.textContent='🗑';
-    bar.appendChild(bCopy); bar.appendChild(bEdit); bar.appendChild(bDel);
-    [bCopy,bEdit,bDel].forEach(function(b){ b.addEventListener('click', function(e){ e.stopPropagation(); }); });
-    bCopy.addEventListener('click', function(){ copyHTML(post); });
-    bEdit.addEventListener('click', function(){ openCreate(post); });
-    bDel.addEventListener('click', function(){
-      if(confirm('¿Eliminar este posteo?')){
-        setPosts(getPosts().filter(function(p){ return p.id!==post.id; }));
-        render();
-      }
-    });
-    art.appendChild(bar);
-
-    if(post.type==='estatico'){
-      var m=document.createElement('div'); m.className='media';
-      var img=document.createElement('img'); img.src=post.img; img.alt=post.title||'Propuesta'; img.loading='lazy';
-      m.appendChild(img); art.appendChild(m); art.appendChild(foot(post));
-    } else if(post.type==='video'){
-      var m2=document.createElement('div'); m2.className='media';
-      var embed=getEmbed(post.video);
-      if(embed){
-        var thumb=post.poster || embed.thumb || 'media/video-poster.svg';
-        var timg=document.createElement('img'); timg.src=thumb; timg.alt=post.title||'Video'; timg.loading='lazy';
-        m2.appendChild(timg); m2.appendChild(playBadge());
-        m2.style.cursor='zoom-in';
-        m2.addEventListener('click', function(e){ e.stopPropagation(); openEmbed(embed); });
-      } else {
-        var v=document.createElement('video');
-        if(post.video) v.src=post.video;
-        if(post.poster) v.poster=post.poster;
-        v.autoplay=true; v.muted=true; v.loop=true; v.playsInline=true; v.setAttribute('preload','none');
-        m2.appendChild(v); m2.appendChild(playBadge());
-      }
-      art.appendChild(m2); art.appendChild(foot(post));
-    } else if(post.type==='copy'){
-      var cb=document.createElement('div'); cb.className='copy-body';
-      var p=document.createElement('p'); p.className='copy-text'; applyBold(p, post.text); cb.appendChild(p);
-      art.appendChild(cb); art.appendChild(foot(post));
-    } else if(post.type==='tendencias'){
-      var tb=document.createElement('div'); tb.className='trend-body';
-      var h=document.createElement('h3'); h.textContent=post.h3||''; tb.appendChild(h);
-      var ul=document.createElement('ul');
-      (post.links||[]).forEach(function(L){
-        if(!L.url && !L.label) return;
-        var li=document.createElement('li'); var a=document.createElement('a');
-        a.href=L.url||'#'; a.target='_blank'; a.rel='noopener';
-        var sp=document.createElement('span'); sp.className='lnk'; sp.textContent=L.label||L.url;
-        a.appendChild(sp); li.appendChild(a); ul.appendChild(li);
-      });
-      tb.appendChild(ul); art.appendChild(tb); art.appendChild(foot(post, true));
-    }
-    return art;
-  }
-
-  function render(){
-    grid.querySelectorAll('.card[data-dynamic]').forEach(function(n){ n.remove(); });
-    var posts=getPosts(); // posts[0] = más reciente
-    for(var i=posts.length-1; i>=0; i--){ grid.insertBefore(buildCard(posts[i]), grid.firstChild); }
-    if(window.Gallery){ Gallery.updateCounts(); Gallery.reapply(); }
-  }
-
-  // --- generar HTML estático para copiar ---
-  function toHTML(post){
-    if(post.type==='estatico'){
-      return '<article class="card card--zoom" data-category="estatico">\n  <div class="media"><img src="'+post.img+'" alt="'+esc(post.title)+'" loading="lazy" /></div>\n  <div class="card-foot"><span class="card-tag">Estático</span>'+(post.title?'<p class="card-title">'+esc(post.title)+'</p>':'')+'</div>\n</article>';
-    }
-    if(post.type==='video'){
-      var emb=getEmbed(post.video);
-      if(emb){
-        return '<article class="card" data-category="video">\n  <div class="media" style="position:relative;aspect-ratio:'+(emb.vertical?'9/16':'16/9')+'"><iframe src="'+esc(emb.sstatic)+'" loading="lazy" allow="fullscreen; encrypted-media; picture-in-picture" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe></div>\n  <div class="card-foot"><span class="card-tag">Video</span>'+(post.title?'<p class="card-title">'+esc(post.title)+'</p>':'')+'</div>\n</article>';
-      }
-      return '<article class="card card--zoom" data-category="video">\n  <div class="media"><video src="'+esc(post.video)+'"'+(post.poster?' poster="'+esc(post.poster)+'"':'')+' autoplay muted loop playsinline preload="none"></video><div class="play-badge"><span></span></div></div>\n  <div class="card-foot"><span class="card-tag">Video</span>'+(post.title?'<p class="card-title">'+esc(post.title)+'</p>':'')+'</div>\n</article>';
-    }
-    if(post.type==='copy'){
-      return '<article class="card card--copy" data-category="copy">\n  <div class="copy-body"><p class="copy-text">'+boldHtml(post.text)+'</p></div>\n  <div class="card-foot"><span class="card-tag">Copy</span>'+(post.title?'<p class="card-title">'+esc(post.title)+'</p>':'')+'</div>\n</article>';
-    }
-    var lis=(post.links||[]).filter(function(L){return L.url||L.label;}).map(function(L){
-      return '      <li><a href="'+esc(L.url||'#')+'" target="_blank" rel="noopener"><span class="lnk">'+esc(L.label||L.url)+'</span></a></li>';
-    }).join('\n');
-    return '<article class="card card--tendencias" data-category="tendencias">\n  <div class="trend-body"><h3>'+esc(post.h3)+'</h3>\n    <ul>\n'+lis+'\n    </ul>\n  </div>\n  <div class="card-foot"><span class="card-tag">Tendencias</span></div>\n</article>';
-  }
-  function copyHTML(post){
-    var html=toHTML(post);
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(html).then(function(){ showToast('HTML copiado al portapapeles'); },
-        function(){ window.prompt('Copia este HTML:', html); });
-    } else { window.prompt('Copia este HTML:', html); }
-  }
-
-  // --- autenticación ---
-  function isAuthed(){ return localStorage.getItem(AUTHKEY)==='1'; }
-  function setAuthUI(){
-    var on=isAuthed();
-    document.body.classList.toggle('is-admin', on);
-    loginBtn.classList.toggle('hidden', on);
-    [createBtn, exportBtn, importBtn, logoutBtn].forEach(function(b){ b.classList.toggle('hidden', !on); });
-  }
-  function openModal(m){ m.classList.add('open'); }
-  function closeModal(m){ m.classList.remove('open'); }
-
-  loginBtn.addEventListener('click', function(){ loginErr.classList.add('hidden'); loginUser.value=''; loginPass.value=''; openModal(loginModal); loginUser.focus(); });
-  $('loginCancel').addEventListener('click', function(){ closeModal(loginModal); });
-  function doLogin(){
-    if(loginUser.value.trim()===USER && loginPass.value===PASS){
-      localStorage.setItem(AUTHKEY,'1'); setAuthUI(); closeModal(loginModal); showToast('Bienvenido — modo edición activo');
-    } else { loginErr.classList.remove('hidden'); }
-  }
-  $('loginSubmit').addEventListener('click', doLogin);
-  loginPass.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
-  logoutBtn.addEventListener('click', function(){ localStorage.removeItem(AUTHKEY); setAuthUI(); showToast('Sesión cerrada'); });
-
-  // --- formulario de creación ---
-  function setType(type){
-    currentType=type;
-    typeSeg.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b.dataset.type===type); });
-    createModal.querySelector('.f-estatico').classList.toggle('hidden', type!=='estatico');
-    createModal.querySelector('.f-video').classList.toggle('hidden', type!=='video');
-    createModal.querySelector('.f-copy').classList.toggle('hidden', type!=='copy');
-    createModal.querySelector('.f-tendencias').classList.toggle('hidden', type!=='tendencias');
-    createModal.querySelector('.f-title').classList.toggle('hidden', type==='tendencias');
-  }
-  typeSeg.addEventListener('click', function(e){ var b=e.target.closest('button'); if(b) setType(b.dataset.type); });
-
-  function addLinkRow(label,url){
-    var row=document.createElement('div'); row.className='link-row';
-    var a=document.createElement('input'); a.className='input l-label'; a.placeholder='Texto del enlace'; a.value=label||'';
-    var b=document.createElement('input'); b.className='input l-url'; b.placeholder='https://...'; b.value=url||'';
-    var rm=document.createElement('button'); rm.type='button'; rm.className='rm'; rm.textContent='×';
-    rm.addEventListener('click', function(){ row.remove(); });
-    row.appendChild(a); row.appendChild(b); row.appendChild(rm); linkList.appendChild(row);
-  }
-  $('addLink').addEventListener('click', function(){ addLinkRow('',''); });
-
-  function resetForm(){
-    editId=null; pendingImg=null;
-    fTitle.value=''; fImage.value=''; fVideo.value=''; fPoster.value=''; fCopy.value=''; fH3.value='';
-    imgPreview.style.display='none'; imgPreview.querySelector('img').src='';
-    linkList.innerHTML=''; addLinkRow('',''); addLinkRow('','');
-    createTitle.textContent='Nuevo posteo';
-    setType('estatico');
-  }
-  function openCreate(post){
-    resetForm();
-    if(post){
-      editId=post.id; createTitle.textContent='Editar posteo'; setType(post.type);
-      if(post.type==='estatico'){ pendingImg=post.img; if(post.img){ imgPreview.querySelector('img').src=post.img; imgPreview.style.display='block'; } fTitle.value=post.title||''; }
-      else if(post.type==='video'){ fVideo.value=post.video||''; fPoster.value=post.poster||''; fTitle.value=post.title||''; }
-      else if(post.type==='copy'){ fCopy.value=post.text||''; fTitle.value=post.title||''; }
-      else if(post.type==='tendencias'){ fH3.value=post.h3||''; linkList.innerHTML=''; (post.links||[]).forEach(function(L){ addLinkRow(L.label,L.url); }); if(!post.links || !post.links.length){ addLinkRow('',''); } }
-    }
-    openModal(createModal);
-  }
-  createBtn.addEventListener('click', function(){ openCreate(null); });
-  $('createCancel').addEventListener('click', function(){ closeModal(createModal); });
-
-  // imagen → reescalar → dataURL
-  fImage.addEventListener('change', function(){
-    var file=fImage.files && fImage.files[0]; if(!file) return;
-    var fr=new FileReader();
-    fr.onload=function(){
-      var img=new Image();
-      img.onload=function(){
-        var max=1400, w=img.width, h=img.height;
-        if(w>max){ h=Math.round(h*max/w); w=max; }
-        var c=document.createElement('canvas'); c.width=w; c.height=h;
-        c.getContext('2d').drawImage(img,0,0,w,h);
-        pendingImg=c.toDataURL('image/jpeg',0.82);
-        imgPreview.querySelector('img').src=pendingImg; imgPreview.style.display='block';
-      };
-      img.src=fr.result;
-    };
-    fr.readAsDataURL(file);
-  });
-
-  function collectLinks(){
-    var out=[];
-    linkList.querySelectorAll('.link-row').forEach(function(r){
-      var label=r.querySelector('.l-label').value.trim();
-      var url=r.querySelector('.l-url').value.trim();
-      if(label||url) out.push({ label:label, url:url });
-    });
-    return out;
-  }
-
-  $('saveBtn').addEventListener('click', function(){
-    var post={ id: editId || ('p'+Date.now()), type: currentType };
-    if(currentType!=='tendencias') post.title=fTitle.value.trim();
-
-    if(currentType==='estatico'){
-      if(!pendingImg){ alert('Agrega una imagen.'); return; }
-      post.img=pendingImg;
-    } else if(currentType==='video'){
-      post.video=fVideo.value.trim(); post.poster=fPoster.value.trim();
-      if(!post.video){ alert('Escribe la ruta o el enlace directo del video (.mp4).'); return; }
-    } else if(currentType==='copy'){
-      post.text=fCopy.value.trim();
-      if(!post.text){ alert('Escribe el texto del copy.'); return; }
-    } else if(currentType==='tendencias'){
-      post.h3=fH3.value.trim(); post.links=collectLinks();
-      if(!post.h3){ alert('Escribe el encabezado.'); return; }
-    }
-
-    var posts=getPosts();
-    if(editId){
-      for(var i=0;i<posts.length;i++){ if(posts[i].id===editId){ posts[i]=post; break; } }
-    } else { posts.unshift(post); }
-
-    try{ setPosts(posts); }
-    catch(e){ alert('No hay espacio suficiente en el navegador para guardar más imágenes. Exporta un respaldo o usa imágenes más livianas.'); return; }
-
-    render(); closeModal(createModal);
-    showToast(editId ? 'Posteo actualizado' : 'Posteo creado');
-  });
-
-  // --- exportar / importar respaldo ---
-  exportBtn.addEventListener('click', function(){
-    var blob=new Blob([JSON.stringify(getPosts(),null,2)], { type:'application/json' });
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a'); a.href=url; a.download='lacoopear-posteos.json';
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    showToast('Respaldo descargado');
-  });
-  importBtn.addEventListener('click', function(){ importFile.click(); });
-  importFile.addEventListener('change', function(){
-    var file=importFile.files && importFile.files[0]; if(!file) return;
-    var fr=new FileReader();
-    fr.onload=function(){
-      try{
-        var data=JSON.parse(fr.result);
-        if(!Array.isArray(data)) throw 0;
-        if(confirm('Esto reemplazará los posteos actuales por los del respaldo ('+data.length+' posteos). ¿Continuar?')){
-          setPosts(data); render(); showToast('Respaldo importado');
-        }
-      }catch(e){ alert('El archivo no es un respaldo válido.'); }
-      importFile.value='';
-    };
-    fr.readAsText(file);
-  });
-
-  // cerrar modales al tocar el fondo
-  [loginModal, createModal].forEach(function(m){
-    m.addEventListener('click', function(e){ if(e.target===m) closeModal(m); });
-  });
-  document.addEventListener('keydown', function(e){
-    if(e.key==='Escape'){ closeModal(loginModal); closeModal(createModal); }
-  });
-
-  // --- arranque ---
-  setAuthUI();
-  render();
-})();
-</script>
-
+  <script src="app.js"></script>
 </body>
 </html>
