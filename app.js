@@ -1,5 +1,5 @@
 /* ============================================================
-   LACOOPEAR × QBM — Firebase Estable
+   LACOOPEAR × QBM — VERSIÓN FINAL ESTABLE (Firebase)
    ============================================================ */
 'use strict';
 
@@ -37,35 +37,7 @@
 
   let allPosts = [];
 
-  /* Firebase Functions */
-  async function loadPosts() {
-    try {
-      const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').get();
-      allPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      render();
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  async function savePost(post) {
-    try {
-      if (editId) {
-        await db.collection('posts').doc(editId).update(post);
-      } else {
-        post.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-        await db.collection('posts').doc().set(post);
-      }
-      showToast(editId ? 'Actualizado' : '✅ Posteo creado');
-      editId = null;
-      await loadPosts();
-      closeModal(createModal);
-      resetForm();
-    } catch (e) {
-      alert('Error al guardar');
-    }
-  }
-
+  /* Utilidades */
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
@@ -96,6 +68,36 @@
   function closeModal(m) { m.classList.remove('open'); }
   function openModal(m) { m.classList.add('open'); }
 
+  /* Firebase */
+  async function loadPosts() {
+    try {
+      const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').get();
+      allPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      render();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function savePost(post) {
+    try {
+      if (editId) {
+        await db.collection('posts').doc(editId).update(post);
+      } else {
+        post.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        await db.collection('posts').doc().set(post);
+      }
+      showToast(editId ? 'Posteo actualizado' : '✅ Posteo creado');
+      editId = null;
+      await loadPosts();
+      closeModal(createModal);
+      resetForm();
+    } catch (e) {
+      console.error(e);
+      alert('Error al guardar en Firebase');
+    }
+  }
+
   function resetForm() {
     editId = null;
     pendingImg = null;
@@ -106,7 +108,7 @@
     fCopy.value = '';
     fH3.value = '';
     fDesc.value = '';
-    imgPreview.style.display = 'none';
+    if (imgPreview) imgPreview.style.display = 'none';
   }
 
   function openCreate() {
@@ -114,12 +116,14 @@
     openModal(createModal);
   }
 
-  /* Guardar */
+  /* Guardar Posteo */
   $('saveBtn').addEventListener('click', function () {
-    const post = { type: currentType, title: fTitle.value.trim() };
+    const post = { type: currentType };
+
+    if (currentType !== 'tendencias') post.title = fTitle.value.trim();
 
     if (currentType === 'estatico') {
-      if (!pendingImg) return alert('Sube una imagen primero');
+      if (!pendingImg) return alert('❌ Debes subir una imagen');
       post.img = pendingImg;
     } else if (currentType === 'video') {
       post.video = fVideo.value.trim();
@@ -133,30 +137,45 @@
   });
 
   /* Subir imagen */
-  fImage.addEventListener('change', function () {
-    const file = fImage.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        pendingImg = e.target.result;
-        imgPreview.querySelector('img').src = pendingImg;
-        imgPreview.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+  if (fImage) {
+    fImage.addEventListener('change', function () {
+      const file = fImage.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          pendingImg = e.target.result;
+          if (imgPreview) {
+            imgPreview.querySelector('img').src = pendingImg;
+            imgPreview.style.display = 'block';
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  /* Render */
+  function render() {
+    grid.innerHTML = '';
+    allPosts.forEach(post => {
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `<div class="card-foot"><span class="card-tag">${LABELS[post.type]}</span><p>${post.title || ''}</p></div>`;
+      grid.appendChild(card);
+    });
+  }
 
   /* Arranque */
   setAuthUI();
-  loadPosts();
+  if (typeof db !== "undefined") loadPosts();
 
   loginBtn.addEventListener('click', () => openModal(loginModal));
-  $('loginSubmit').addEventListener('click', doLogin);
+  if ($('loginSubmit')) $('loginSubmit').addEventListener('click', doLogin);
   createBtn.addEventListener('click', openCreate);
   logoutBtn.addEventListener('click', () => {
     localStorage.removeItem(AUTH_KEY);
     setAuthUI();
   });
 
-  console.log("✅ App estable cargada");
+  console.log("✅ Versión FINAL estable cargada");
 })();

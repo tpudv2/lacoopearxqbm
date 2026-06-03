@@ -1,4 +1,4 @@
-// firebase-config.js
+// firebase-config.js - VERSIÓN FINAL
 const firebaseConfig = {
   apiKey: "AIzaSyCzo5zFFr9mmg71QsSLM8-xWw6gLsL7WoE",
   authDomain: "lacoopear-qbm.firebaseapp.com",
@@ -10,7 +10,6 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
-  console.log("✅ Firebase inicializado correctamente");
 }
 
 const db = firebase.firestore();
