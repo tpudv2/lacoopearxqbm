@@ -172,11 +172,11 @@
       <!-- VIDEO -->
       <div class="field f-video hidden">
         <label for="fVideo">Video — archivo, enlace directo, YouTube/Vimeo o Pinterest</label>
-        <input class="input" id="fVideo" type="text" placeholder="media/video.mp4  ·  youtu.be/...  ·  pinterest.com/pin/..." />
-        <p class="note">Acepta: archivo de <strong>media/</strong>, <strong>enlace directo</strong> a .mp4/.webm, o enlace de <strong>YouTube, Shorts, Vimeo o Pinterest</strong> (se incrustan solos). Cualquier otro enlace se abre en su plataforma de origen al tocar la tarjeta.</p>
+        <input class="input" id="fVideo" type="text" placeholder="media/video.mp4  ·  https://cdn.../clip  ·  youtu.be/...  ·  pinterest.com/pin/..." />
+        <p class="note">Acepta: archivo de <strong>media/</strong>, <strong>enlace directo</strong> a un video (aunque no termine en .mp4), o enlace de <strong>YouTube, Shorts o Vimeo</strong>. Para enlaces directos se genera la <strong>portada del primer frame</strong> automáticamente y al abrir tendrás controles de <strong>play y volumen</strong>. <strong>Pinterest</strong> se incrusta con su propio reproductor.</p>
         <label for="fPoster" style="margin-top:14px">Portada / poster (opcional) — ruta o enlace</label>
         <input class="input" id="fPoster" type="text" placeholder="media/video-poster.svg  ·  https://.../portada.jpg" />
-        <p class="note">Imagen que se ve en la tarjeta antes de abrir. <strong>Recomendada</strong> para enlaces de Pinterest u otras plataformas, así la vista previa siempre se ve bien.</p>
+        <p class="note">Si lo dejas vacío, intentamos generar la portada sola. Conviene ponerla a mano para enlaces de <strong>Pinterest</strong> u otras plataformas que no exponen el archivo de video.</p>
       </div>
 
       <!-- COPY -->

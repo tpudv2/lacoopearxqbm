@@ -142,19 +142,14 @@
     catch (e) { return ''; }
   }
 
-  /* ¿Es un archivo de video servible directamente? */
-  function isDirectMedia(url) {
-    if (!/^https?:\/\//i.test(url)) return true; // ruta local (media/…)
-    return /\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(url);
-  }
-
   /*
     Clasifica el contenido del campo "video":
-      file      → archivo local o enlace directo .mp4/.webm  → <video> inline
+      file      → archivo local o enlace directo a un video → <video> con controles
       youtube   → se incrusta en el lightbox
       vimeo     → se incrusta en el lightbox
       pinterest → se incrusta el pin real en el lightbox (widget oficial)
-      link      → cualquier otra página → se abre en su origen (pestaña nueva)
+    Cualquier otro enlace se intenta como video directo; si el archivo no
+    es reproducible, la tarjeta hace un respaldo abriendo el origen.
   */
   function classifyVideo(url) {
     if (!url) return { type: 'file' };
@@ -167,9 +162,46 @@
       return { type: 'pinterest', url: u, host: detectHost(u) || 'pinterest.com' };
     }
 
-    if (isDirectMedia(u)) return { type: 'file' };
+    return { type: 'file', url: u, host: detectHost(u) };
+  }
 
-    return { type: 'link', url: u, host: detectHost(u) };
+  /*
+    Captura el primer fotograma de un video como imagen (portada).
+    Devuelve una promesa con un dataURL, o null si no se pudo
+    (página que no es video, o video de otro dominio sin permiso CORS).
+  */
+  function captureFirstFrame(url) {
+    return new Promise(function (resolve) {
+      var v = document.createElement('video');
+      v.muted = true;
+      v.preload = 'metadata';
+      v.playsInline = true;
+      var settled = false;
+      function finish(val) {
+        if (settled) return;
+        settled = true;
+        try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
+        resolve(val);
+      }
+      v.addEventListener('loadeddata', function () {
+        try {
+          var w = v.videoWidth || 640;
+          var h = v.videoHeight || 360;
+          var max = 900, sw = w, sh = h;
+          if (sw > max) { sh = Math.round(sh * max / sw); sw = max; }
+          var canvas = document.createElement('canvas');
+          canvas.width = sw;
+          canvas.height = sh;
+          canvas.getContext('2d').drawImage(v, 0, 0, sw, sh);
+          finish(canvas.toDataURL('image/jpeg', 0.72));
+        } catch (e) {
+          finish(null); // canvas "manchado" por CORS
+        }
+      });
+      v.addEventListener('error', function () { finish(null); });
+      setTimeout(function () { finish(null); }, 8000);
+      v.src = url + (/#/.test(url) ? '' : '#t=0.1');
+    });
   }
 
   /* Carga perezosa del widget de Pinterest (una sola vez) */
@@ -327,9 +359,17 @@
         return;
       }
       var v = document.createElement('video');
-      v.src = vid.currentSrc || vid.src;
-      v.controls = true; v.autoplay = true; v.loop = true; v.playsInline = true;
+      v.src = (vid.currentSrc || vid.src).replace(/#t=[\d.]+$/, '');
+      v.controls = true;       // play/pausa, volumen, pantalla completa
+      v.autoplay = true;
+      v.loop = false;
+      v.muted = false;         // con sonido al abrir
+      v.playsInline = true;
+      v.setAttribute('controlslist', 'nodownload');
+      v.style.maxWidth = '92vw';
+      v.style.maxHeight = '90vh';
       openLightbox(v);
+      v.play().catch(function () {});
     }
   });
 
@@ -416,17 +456,41 @@
       vMedia.className = 'media';
 
       if (vinfo.type === 'file') {
-        // Archivo local o enlace directo .mp4/.webm → se reproduce inline
+        // Archivo local o enlace directo a un video → primer frame + controles al abrir
+        var src = post.video || '';
         var video = document.createElement('video');
-        if (post.video) video.src = post.video;
+        video.src = post.poster ? src : src + (/#/.test(src) ? '' : '#t=0.1');
         if (post.poster) video.poster = post.poster;
-        video.autoplay = true; video.muted = true; video.loop = true;
-        video.playsInline = true; video.setAttribute('preload', 'none');
+        video.muted = true;
+        video.loop = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.setAttribute('preload', 'metadata');
+
+        // Si el enlace no es un video reproducible → respaldo: abrir en origen
+        video.addEventListener('error', function () {
+          article.classList.remove('card--zoom');
+          vMedia.innerHTML = '';
+          var fallback = document.createElement('div');
+          fallback.className = 'media-fallback';
+          var host = document.createElement('span');
+          host.className = 'media-fallback__host';
+          host.textContent = vinfo.host || 'abrir enlace';
+          fallback.appendChild(host);
+          vMedia.appendChild(fallback);
+          vMedia.appendChild(makePlayBadge());
+          vMedia.style.cursor = 'zoom-in';
+          vMedia.addEventListener('click', function (e) {
+            e.stopPropagation();
+            window.open(post.video, '_blank', 'noopener');
+          });
+        });
+
         vMedia.appendChild(video);
         vMedia.appendChild(makePlayBadge());
 
       } else {
-        // YouTube / Vimeo / Pinterest / otro enlace → portada + clic
+        // YouTube / Vimeo / Pinterest → portada + clic que incrusta
         var posterSrc = post.poster || (vinfo.embed && vinfo.embed.thumb) || '';
         if (posterSrc) {
           var timg = document.createElement('img');
@@ -435,14 +499,13 @@
           timg.loading = 'lazy';
           vMedia.appendChild(timg);
         } else {
-          // Sin portada: mosaico con el nombre de la plataforma
-          var fallback = document.createElement('div');
-          fallback.className = 'media-fallback';
-          var host = document.createElement('span');
-          host.className = 'media-fallback__host';
-          host.textContent = vinfo.host || vinfo.type || 'Enlace';
-          fallback.appendChild(host);
-          vMedia.appendChild(fallback);
+          var fb = document.createElement('div');
+          fb.className = 'media-fallback';
+          var fbHost = document.createElement('span');
+          fbHost.className = 'media-fallback__host';
+          fbHost.textContent = vinfo.host || vinfo.type || 'Enlace';
+          fb.appendChild(fbHost);
+          vMedia.appendChild(fb);
         }
         vMedia.appendChild(makePlayBadge());
         vMedia.style.cursor = 'zoom-in';
@@ -450,7 +513,6 @@
           e.stopPropagation();
           if (vinfo.type === 'youtube' || vinfo.type === 'vimeo') openEmbed(vinfo.embed);
           else if (vinfo.type === 'pinterest') openPinterest(vinfo.url);
-          else window.open(vinfo.url, '_blank', 'noopener');
         });
       }
 
@@ -538,20 +600,10 @@
           '     <script async defer src="https://assets.pinterest.com/js/pinit.js"><\/script> -->';
       }
 
-      if (info.type === 'link') {
-        var inner = post.poster
-          ? '<img src="' + esc(post.poster) + '" alt="' + esc(post.title) + '" loading="lazy" />'
-          : '<span class="media-fallback"><span class="media-fallback__host">' + esc(info.host) + '</span></span>';
-        return '<article class="card card--zoom" data-category="video">\n' +
-          '  <a class="media" href="' + esc(info.url) + '" target="_blank" rel="noopener" style="display:block;cursor:zoom-in">' +
-          inner + '<span class="play-badge"><span></span></span></a>\n' +
-          '  <div class="card-foot"><span class="card-tag">Video</span>' + titleHtml + '</div>\n</article>';
-      }
-
-      // Archivo local o enlace directo
+      // Archivo local o enlace directo a un video
       return '<article class="card card--zoom" data-category="video">\n' +
         '  <div class="media"><video src="' + esc(post.video) + '"' + (post.poster ? ' poster="' + esc(post.poster) + '"' : '') +
-        ' autoplay muted loop playsinline preload="none"></video><div class="play-badge"><span></span></div></div>\n' +
+        ' autoplay muted loop playsinline preload="metadata"></video><div class="play-badge"><span></span></div></div>\n' +
         '  <div class="card-foot"><span class="card-tag">Video</span>' + titleHtml + '</div>\n</article>';
     }
 
@@ -754,26 +806,7 @@
     return out;
   }
 
-  $('saveBtn').addEventListener('click', function () {
-    var post = { id: editId || ('p' + Date.now()), type: currentType };
-    if (currentType !== 'tendencias') post.title = fTitle.value.trim();
-
-    if (currentType === 'estatico') {
-      if (!pendingImg) { alert('Agrega una imagen.'); return; }
-      post.img = pendingImg;
-    } else if (currentType === 'video') {
-      post.video = fVideo.value.trim();
-      post.poster = fPoster.value.trim();
-      if (!post.video) { alert('Escribe la ruta o el enlace directo del video (.mp4).'); return; }
-    } else if (currentType === 'copy') {
-      post.text = fCopy.value.trim();
-      if (!post.text) { alert('Escribe el texto del copy.'); return; }
-    } else if (currentType === 'tendencias') {
-      post.h3 = fH3.value.trim();
-      post.links = collectLinks();
-      if (!post.h3) { alert('Escribe el encabezado.'); return; }
-    }
-
+  function persistPost(post) {
     var posts = getPosts();
     if (editId) {
       for (var i = 0; i < posts.length; i++) {
@@ -793,6 +826,44 @@
     render();
     closeModal(createModal);
     showToast(editId ? 'Posteo actualizado' : 'Posteo creado');
+  }
+
+  $('saveBtn').addEventListener('click', function () {
+    var saveBtn = this;
+    var post = { id: editId || ('p' + Date.now()), type: currentType };
+    if (currentType !== 'tendencias') post.title = fTitle.value.trim();
+
+    if (currentType === 'estatico') {
+      if (!pendingImg) { alert('Agrega una imagen.'); return; }
+      post.img = pendingImg;
+    } else if (currentType === 'video') {
+      post.video = fVideo.value.trim();
+      post.poster = fPoster.value.trim();
+      if (!post.video) { alert('Escribe la ruta o el enlace del video.'); return; }
+
+      // Video directo sin portada → intentar capturar el primer frame
+      var info = classifyVideo(post.video);
+      if (info.type === 'file' && !post.poster) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Generando portada…';
+        captureFirstFrame(post.video).then(function (frame) {
+          if (frame) post.poster = frame;
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Guardar posteo';
+          persistPost(post);
+        });
+        return;
+      }
+    } else if (currentType === 'copy') {
+      post.text = fCopy.value.trim();
+      if (!post.text) { alert('Escribe el texto del copy.'); return; }
+    } else if (currentType === 'tendencias') {
+      post.h3 = fH3.value.trim();
+      post.links = collectLinks();
+      if (!post.h3) { alert('Escribe el encabezado.'); return; }
+    }
+
+    persistPost(post);
   });
 
   /* ----------------------------------------------------------
