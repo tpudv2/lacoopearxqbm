@@ -10,77 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Saira+Condensed:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
-  <script src="firebase-config.js"></script>
-  
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-  <!--
-    ╔══════════════════════════════════════════════════════════════════════╗
-    ║  CÓMO AGREGAR CONTENIDO                                                ║
-    ║                                                                        ║
-    ║  Forma fácil (recomendada): entra con el botón "Admin" (arriba a la    ║
-    ║  derecha) y usa "+ Crear posteo". No necesitas tocar el código.        ║
-    ║                                                                        ║
-    ║  Forma manual: sube tu archivo a /media, copia uno de los bloques de   ║
-    ║  abajo y pégalo dentro de <main id="grid"> … </main>. El filtro y el   ║
-    ║  lightbox funcionan solos según el data-category de cada tarjeta       ║
-    ║  (estatico | video | copy | tendencias).                              ║
-    ╚══════════════════════════════════════════════════════════════════════╝
-
-    ── BLOQUE: ESTÁTICO (imagen) ───────────────────────────────────────────
-    <article class="card card--zoom" data-category="estatico">
-      <div class="media">
-        <img src="media/TU-IMAGEN.jpg" alt="Descripción" loading="lazy" />
-      </div>
-      <div class="card-foot">
-        <span class="card-tag">Estático</span>
-        <p class="card-title">Título de la propuesta</p>
-      </div>
-    </article>
-
-    ── BLOQUE: VIDEO (.mp4) ─────────────────────────────────────────────────
-    <article class="card card--zoom" data-category="video">
-      <div class="media">
-        <video src="media/TU-VIDEO.mp4" poster="media/video-poster.svg"
-               autoplay muted loop playsinline preload="none"></video>
-        <div class="play-badge"><span></span></div>
-      </div>
-      <div class="card-foot">
-        <span class="card-tag">Video</span>
-        <p class="card-title">Título del reel</p>
-      </div>
-    </article>
-
-    ── BLOQUE: COPY (texto) ─────────────────────────────────────────────────
-    <article class="card card--copy" data-category="copy">
-      <div class="copy-body">
-        <p class="copy-text">Escribe aquí tu <strong>idea de copy</strong>.</p>
-      </div>
-      <div class="card-foot">
-        <span class="card-tag">Copy</span>
-        <p class="card-title">Concepto / campaña</p>
-      </div>
-    </article>
-
-    ── BLOQUE: TENDENCIAS (lista de enlaces) ────────────────────────────────
-    <article class="card card--tendencias" data-category="tendencias">
-      <div class="trend-body">
-        <h3>¿De qué trata esta tarjeta?</h3>
-        <ul class="trend-links">
-          <li><a href="https://..." target="_blank" rel="noopener"><span class="lnk">Nombre del enlace</span></a></li>
-        </ul>
-      </div>
-      <div class="card-foot">
-        <span class="card-tag">Tendencias</span>
-      </div>
-    </article>
-  -->
 
   <!-- ============ BARRA DE ADMINISTRACIÓN (flotante) ============ -->
   <div class="admin-bar" id="adminBar">
@@ -119,10 +51,7 @@
   </nav>
 
   <!-- ============ GALERÍA ============ -->
-  <!-- Las tarjetas creadas desde "+ Crear posteo" se insertan aquí. -->
-  <!-- También puedes pegar bloques-plantilla manualmente entre <main> y </main>. -->
-  <main class="grid" id="grid">
-  </main>
+  <main class="grid" id="grid"></main>
 
   <p class="empty" id="empty">No hay piezas en esta categoría todavía.</p>
 
@@ -156,7 +85,7 @@
   <div class="modal" id="createModal" role="dialog" aria-modal="true" aria-labelledby="createTitle">
     <div class="modal-card">
       <h2 id="createTitle">Nuevo posteo</h2>
-      <p class="modal-sub">Elige el tipo y completa los datos. Se guarda en este navegador.</p>
+      <p class="modal-sub">Elige el tipo y completa los datos. Se guarda en Firebase.</p>
 
       <div class="field">
         <label id="typeLabel">Tipo de tarjeta</label>
@@ -178,16 +107,16 @@
         <label for="fImage">Imagen</label>
         <input class="input" id="fImage" type="file" accept="image/*" />
         <div class="img-preview" id="imgPreview"><img alt="Vista previa" /></div>
-        <p class="note">Se guarda dentro del navegador. Se reescala automáticamente para no ocupar demasiado.</p>
+        <p class="note">La imagen se convierte a base64 y se guarda en Firebase.</p>
       </div>
 
       <!-- VIDEO -->
       <div class="field f-video hidden">
-        <label for="fVideo">Video — archivo, enlace directo, YouTube/Vimeo o Pinterest</label>
-        <input class="input" id="fVideo" type="text" placeholder="media/video.mp4  ·  https://cdn.../clip  ·  youtu.be/...  ·  pinterest.com/pin/..." />
-        <p class="note">Acepta: archivo de <strong>media/</strong>, <strong>enlace directo</strong> a un video (aunque no termine en .mp4), o enlace de <strong>YouTube, Shorts o Vimeo</strong>. Para enlaces directos se genera la <strong>portada del primer frame</strong> automáticamente y al abrir tendrás controles de <strong>play y volumen</strong>. <strong>Pinterest</strong> se incrusta con su propio reproductor.</p>
+        <label for="fVideo">Video — archivo, enlace directo, YouTube/Vimeo</label>
+        <input class="input" id="fVideo" type="text" placeholder="media/video.mp4  ·  https://cdn.../clip  ·  youtu.be/..." />
+        <p class="note">Acepta archivo local, enlace directo, YouTube, Shorts o Vimeo.</p>
         <label for="fPoster" style="margin-top:14px">Portada / poster (opcional)</label>
-        <input class="input" id="fPoster" type="text" placeholder="Ruta o enlace: media/portada.jpg  ·  https://.../portada.jpg" />
+        <input class="input" id="fPoster" type="text" placeholder="media/portada.jpg  ·  https://.../portada.jpg" />
         <div class="dropzone" id="posterDrop" tabindex="0" role="button" aria-label="Subir o pegar una portada">
           <div class="dropzone__hint">
             <strong>Arrastra</strong> una imagen aquí · <strong>clic</strong> para subir<br />
@@ -197,7 +126,6 @@
           <button type="button" class="dropzone__clear" aria-label="Quitar portada">×</button>
           <input type="file" id="posterFile" accept="image/*" class="hidden" />
         </div>
-        <p class="note">Si dejas todo vacío, intentamos generar la portada del primer frame. Para <strong>Pinterest</strong> u otras plataformas, sube o pega una captura aquí.</p>
       </div>
 
       <!-- COPY -->
@@ -216,7 +144,7 @@
         <button class="btn btn--sm" id="addLink" type="button">+ Añadir enlace</button>
       </div>
 
-      <!-- DESCRIPCIÓN (estático / video) -->
+      <!-- DESCRIPCIÓN -->
       <div class="field f-desc">
         <label for="fDesc">Descripción <span class="lower">(opcional)</span></label>
         <textarea class="input" id="fDesc" placeholder="Una nota breve para explicar la propuesta..."></textarea>
@@ -238,7 +166,7 @@
     <div class="lightbox-content" id="lbContent"></div>
   </div>
 
-  <!-- ============ LECTOR FLOTANTE (descripción) ============ -->
+  <!-- ============ LECTOR FLOTANTE ============ -->
   <div class="reader" id="reader" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
     <div class="reader-card">
       <button class="reader-close" id="readerClose" type="button" aria-label="Cerrar">×</button>
@@ -246,15 +174,11 @@
       <p class="reader-text" id="readerText"></p>
     </div>
   </div>
-  <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
-<!-- Configuración de Firebase -->
-<script src="firebase-config.js"></script>
-
-<!-- Lógica principal de la app -->
-<script src="app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
