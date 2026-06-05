@@ -981,10 +981,10 @@ textarea.input {
 .img-tab {
   flex: 1;
   padding: 7px 12px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--line-2);
   border-radius: 8px;
   background: transparent;
-  color: var(--fg);
+  color: var(--ink);
   font-size: 13px;
   cursor: pointer;
   transition: background .15s, border-color .15s, color .15s;
