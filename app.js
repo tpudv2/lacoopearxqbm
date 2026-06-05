@@ -60,7 +60,7 @@
   }
 
   /* ── Auth ── */
-  function isAuthed() { return localStorage.getItem(AUTH_KEY) === '1'; }
+  function isAuthed() { return sessionStorage.getItem(AUTH_KEY) === '1'; }
 
   function setAuthUI() {
     const on = isAuthed();
@@ -76,7 +76,7 @@
 
   function doLogin() {
     if (loginUser.value.trim() === AUTH.user && loginPass.value === AUTH.pass) {
-      localStorage.setItem(AUTH_KEY, '1');
+      sessionStorage.setItem(AUTH_KEY, '1');
       setAuthUI();
       closeModal(loginModal);
       render();
@@ -611,7 +611,7 @@
   if ($('createCancel')) $('createCancel').addEventListener('click', () => closeModal(createModal));
 
   logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem(AUTH_KEY);
+    sessionStorage.removeItem(AUTH_KEY);
     setAuthUI();
     render();
     showToast('Has salido del modo admin');
