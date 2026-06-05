@@ -406,14 +406,90 @@
   }
 
   /* ── Render ── */
+  function detectVideo(url) {
+    if (!url) return null;
+    var m;
+    m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/|live\/))([A-Za-z0-9_-]{11})/);
+    if (m) return { platform: 'youtube', id: m[1] };
+    m = url.match(/(?:vimeo\.com\/)(\d+)/);
+    if (m) return { platform: 'vimeo', id: m[1] };
+    m = url.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
+    if (m) return { platform: 'instagram', id: m[1] };
+    m = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+    if (m) return { platform: 'tiktok', id: m[1] };
+    m = url.match(/pinterest\.[a-z.]+\/pin\/([0-9]+)/);
+    if (m) return { platform: 'pinterest', id: m[1] };
+    return { platform: 'direct', id: url };
+  }
+
+  var PLAT_BADGE = {
+    youtube:   `<span class="vid-badge vid-badge--yt">▶ YouTube</span>`,
+    vimeo:     `<span class="vid-badge vid-badge--vi">Vimeo</span>`,
+    instagram: `<span class="vid-badge vid-badge--ig">Instagram</span>`,
+    tiktok:    `<span class="vid-badge vid-badge--tk">TikTok</span>`,
+    pinterest: `<span class="vid-badge vid-badge--pi">Pinterest</span>`,
+    direct:    '',
+  };
+
+  function videoPreview(url, poster) {
+    if (!url) return '';
+    const info = detectVideo(url);
+    const badge = PLAT_BADGE[info.platform] || '';
+    var thumb = poster ? `<img src="${escHtml(poster)}" alt="preview" loading="lazy" />` : '';
+
+    if (info.platform === 'youtube') {
+      thumb = `<img src="https://img.youtube.com/vi/${info.id}/hqdefault.jpg" alt="preview" loading="lazy" />`;
+    }
+    if (info.platform === 'vimeo' && !poster) {
+      thumb = `<img class="vimeo-lazy-thumb" data-vimeo="${info.id}" alt="preview" loading="lazy" />`;
+    }
+    if (info.platform === 'direct') {
+      const posterAttr = poster ? ` poster="${escHtml(poster)}"` : '';
+      return `<div class="vid-preview">${badge}
+        <video${posterAttr} preload="none" muted playsinline></video>
+        <div class="vid-play-btn"><svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><polygon points="6,3 20,12 6,21"/></svg></div>
+      </div>`;
+    }
+    return `<div class="vid-preview">${badge}
+      ${thumb}
+      <div class="vid-play-btn"><svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><polygon points="6,3 20,12 6,21"/></svg></div>
+    </div>`;
+  }
+
   function videoEmbed(url, poster) {
     if (!url) return '';
-    const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\\w-]{11})/);
-    if (ytMatch) return `<iframe src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen loading="lazy"></iframe>`;
-    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-    if (vimeoMatch) return `<iframe src="https://player.vimeo.com/video/${vimeoMatch[1]}" frameborder="0" allowfullscreen loading="lazy"></iframe>`;
+    const info = detectVideo(url);
+    if (info.platform === 'youtube') {
+      return `<iframe src="https://www.youtube.com/embed/${info.id}?rel=0" frameborder="0" allowfullscreen loading="lazy"></iframe>`;
+    }
+    if (info.platform === 'vimeo') {
+      return `<iframe src="https://player.vimeo.com/video/${info.id}" frameborder="0" allowfullscreen loading="lazy"></iframe>`;
+    }
+    if (info.platform === 'instagram') {
+      return `<iframe src="https://www.instagram.com/p/${info.id}/embed/" frameborder="0" scrolling="no" allowtransparency loading="lazy" style="min-height:480px"></iframe>`;
+    }
+    if (info.platform === 'tiktok') {
+      return `<iframe src="https://www.tiktok.com/embed/v2/${info.id}" frameborder="0" allowfullscreen loading="lazy" style="min-height:560px"></iframe>`;
+    }
+    if (info.platform === 'pinterest') {
+      return `<div class="vid-ext-link"><p>Pinterest no permite reproducción directa.</p>
+        <a class="btn btn--primary" href="${escHtml(url)}" target="_blank" rel="noopener">Ver en Pinterest →</a></div>`;
+    }
     const posterAttr = poster ? ` poster="${escHtml(poster)}"` : '';
     return `<video src="${escHtml(url)}"${posterAttr} controls muted playsinline preload="metadata"></video>`;
+  }
+
+  async function loadVimeoThumbs() {
+    const imgs = document.querySelectorAll('img.vimeo-lazy-thumb[data-vimeo]');
+    imgs.forEach(async img => {
+      const id = img.dataset.vimeo;
+      try {
+        const res = await fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${id}&width=640`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.thumbnail_url) img.src = data.thumbnail_url;
+      } catch (e) {}
+    });
   }
 
   function buildStatusDots(post) {
@@ -462,7 +538,7 @@
     }
     if (post.type === 'video') {
       return `${admin}
-        <div class="media">${videoEmbed(post.video, post.poster)}</div>
+        <div class="media">${videoPreview(post.video, post.poster)}</div>
         <div class="card-foot">
           ${statusDots}
           <span class="card-tag">${LABELS.video}</span>
@@ -526,6 +602,7 @@
     });
 
     if (emptyMsg) emptyMsg.style.display = filtered.length ? 'none' : '';
+    loadVimeoThumbs();
 
     document.querySelectorAll('.filter').forEach(btn => {
       const f = btn.dataset.filter;
