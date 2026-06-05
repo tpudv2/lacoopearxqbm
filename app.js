@@ -25,6 +25,7 @@
   var typeSeg    = $('typeSeg');
   var fTitle     = $('fTitle');
   var fImage     = $('fImage');
+  var fImageUrl  = $('fImageUrl');
   var imgPreview = $('imgPreview');
   var fVideo     = $('fVideo');
   var fPoster    = $('fPoster');
@@ -184,6 +185,30 @@
   });
 
   /* ── Imagen estático ── */
+  var imgSourceTabs = $('imgSourceTabs');
+  var imgTabFile    = $('imgTabFile');
+  var imgTabUrl     = $('imgTabUrl');
+  var activeImgTab  = 'file';
+
+  if (imgSourceTabs) {
+    imgSourceTabs.addEventListener('click', function (e) {
+      const btn = e.target.closest('.img-tab');
+      if (!btn) return;
+      activeImgTab = btn.dataset.tab;
+      imgSourceTabs.querySelectorAll('.img-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (activeImgTab === 'file') {
+        imgTabFile.classList.remove('hidden');
+        imgTabUrl.classList.add('hidden');
+      } else {
+        imgTabFile.classList.add('hidden');
+        imgTabUrl.classList.remove('hidden');
+      }
+      pendingImg = null;
+      if (imgPreview) imgPreview.style.display = 'none';
+    });
+  }
+
   if (fImage) {
     fImage.addEventListener('change', function () {
       const file = fImage.files[0];
@@ -197,6 +222,22 @@
         }
       };
       reader.readAsDataURL(file);
+    });
+  }
+
+  if (fImageUrl) {
+    fImageUrl.addEventListener('input', function () {
+      const url = fImageUrl.value.trim();
+      if (url) {
+        pendingImg = url;
+        if (imgPreview) {
+          imgPreview.querySelector('img').src = url;
+          imgPreview.style.display = 'block';
+        }
+      } else {
+        pendingImg = null;
+        if (imgPreview) imgPreview.style.display = 'none';
+      }
     });
   }
 
@@ -286,7 +327,16 @@
     pendingPoster = null;
     trendLinks = [];
     fTitle.value = '';
-    if (fImage)  fImage.value  = '';
+    if (fImage)    fImage.value    = '';
+    if (fImageUrl) fImageUrl.value = '';
+    activeImgTab = 'file';
+    if (imgTabFile) imgTabFile.classList.remove('hidden');
+    if (imgTabUrl)  imgTabUrl.classList.add('hidden');
+    if (imgSourceTabs) {
+      imgSourceTabs.querySelectorAll('.img-tab').forEach((b, i) => {
+        if (i === 0) b.classList.add('active'); else b.classList.remove('active');
+      });
+    }
     if (fVideo)  fVideo.value  = '';
     if (fPoster) fPoster.value = '';
     if (fCopy)   fCopy.value   = '';

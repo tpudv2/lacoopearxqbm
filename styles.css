@@ -972,6 +972,35 @@ textarea.input {
   margin-top: 22px;
 }
 
+.img-source-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.img-tab {
+  flex: 1;
+  padding: 7px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.img-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.img-tab:not(.active):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .img-preview {
   margin-top: 10px;
   border-radius: 10px;

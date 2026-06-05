@@ -104,10 +104,19 @@
 
       <!-- ESTÁTICO -->
       <div class="field f-estatico">
-        <label for="fImage">Imagen</label>
-        <input class="input" id="fImage" type="file" accept="image/*" />
+        <label>Imagen</label>
+        <div class="img-source-tabs" id="imgSourceTabs">
+          <button type="button" class="img-tab active" data-tab="file">Subir archivo</button>
+          <button type="button" class="img-tab" data-tab="url">Enlace directo</button>
+        </div>
+        <div id="imgTabFile">
+          <input class="input" id="fImage" type="file" accept="image/*" />
+        </div>
+        <div id="imgTabUrl" class="hidden">
+          <input class="input" id="fImageUrl" type="url" placeholder="https://ejemplo.com/imagen.jpg" />
+        </div>
         <div class="img-preview" id="imgPreview"><img alt="Vista previa" /></div>
-        <p class="note">La imagen se convierte a base64 y se guarda en Firebase.</p>
+        <p class="note">Sube un archivo o pega un enlace directo a la imagen.</p>
       </div>
 
       <!-- VIDEO -->
