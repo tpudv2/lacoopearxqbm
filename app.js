@@ -365,7 +365,7 @@
 
   function buildCardHTML(post) {
     const admin = isAuthed()
-      ? `<div style="position:absolute;top:8px;right:8px;z-index:5"><button class="btn btn--sm" data-delete="${post.id}" title="Eliminar">🗑</button></div>`
+      ? `<div class="card-admin-btns"><button class="btn btn--sm card-edit-btn" data-edit="${post.id}" title="Editar">✏️</button><button class="btn btn--sm" data-delete="${post.id}" title="Eliminar">🗑</button></div>`
       : '';
 
     if (post.type === 'estatico') {
@@ -426,7 +426,9 @@
       const card = document.createElement('article');
       card.className = getCardClass(post.type);
       card.dataset.category = post.type;
+      card.dataset.postId = post.id;
       card.style.position = 'relative';
+      card.style.cursor = 'pointer';
       card.innerHTML = buildCardHTML(post);
       grid.appendChild(card);
     });
@@ -443,6 +445,95 @@
     grid.querySelectorAll('[data-delete]').forEach(btn => {
       btn.addEventListener('click', e => { e.stopPropagation(); deletePost(btn.dataset.delete); });
     });
+
+    grid.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); startEdit(btn.dataset.edit); });
+    });
+
+    grid.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('click', e => {
+        if (e.target.closest('[data-delete],[data-edit]')) return;
+        const postId = card.dataset.postId;
+        if (postId) openDetailModal(postId);
+      });
+    });
+  }
+
+  /* ── Editar post ── */
+  function startEdit(id) {
+    const post = allPosts.find(p => p.id === id);
+    if (!post) return;
+    resetForm();
+    editId = id;
+    $('createTitle').textContent = 'Editar posteo';
+    switchType(post.type);
+    if (post.title) fTitle.value = post.title;
+    if (post.desc && fDesc) fDesc.value = post.desc;
+
+    if (post.type === 'estatico' && post.img) {
+      pendingImg = post.img;
+      if (post.img.startsWith('data:')) {
+        if (imgTabFile) imgTabFile.classList.remove('hidden');
+        if (imgTabUrl)  imgTabUrl.classList.add('hidden');
+        if (imgSourceTabs) imgSourceTabs.querySelectorAll('.img-tab').forEach((b,i) => { if(i===0) b.classList.add('active'); else b.classList.remove('active'); });
+      } else {
+        activeImgTab = 'url';
+        if (imgTabFile) imgTabFile.classList.add('hidden');
+        if (imgTabUrl)  imgTabUrl.classList.remove('hidden');
+        if (fImageUrl)  fImageUrl.value = post.img;
+        if (imgSourceTabs) imgSourceTabs.querySelectorAll('.img-tab').forEach((b,i) => { if(i===1) b.classList.add('active'); else b.classList.remove('active'); });
+      }
+      if (imgPreview) { imgPreview.querySelector('img').src = post.img; imgPreview.style.display = 'block'; }
+    }
+    if (post.type === 'video') {
+      if (fVideo) fVideo.value = post.video || '';
+      if (post.poster) {
+        pendingPoster = post.poster;
+        if (fPoster) fPoster.value = post.poster;
+      }
+    }
+    if (post.type === 'copy'  && fCopy) fCopy.value = post.text || '';
+    if (post.type === 'tendencias') {
+      if (fH3) fH3.value = post.h3 || '';
+      trendLinks = Array.isArray(post.links) ? post.links.map(l => ({...l})) : [];
+      renderLinkList();
+    }
+    openModal(createModal);
+  }
+
+  /* ── Modal de detalle ── */
+  var detailModal = $('detailModal');
+  if ($('detailClose')) $('detailClose').addEventListener('click', () => detailModal.classList.remove('open'));
+  if (detailModal) detailModal.addEventListener('click', e => { if (e.target === detailModal) detailModal.classList.remove('open'); });
+
+  function openDetailModal(id) {
+    const post = allPosts.find(p => p.id === id);
+    if (!post || !detailModal) return;
+    const body = detailModal.querySelector('.detail-body');
+
+    let mediaHTML = '';
+    if (post.type === 'estatico' && post.img) {
+      mediaHTML = `<div class="detail-media"><img src="${escHtml(post.img)}" alt="${escHtml(post.title)}" /></div>`;
+    } else if (post.type === 'video') {
+      mediaHTML = `<div class="detail-media detail-media--video">${videoEmbed(post.video, post.poster)}</div>`;
+    } else if (post.type === 'copy') {
+      mediaHTML = `<div class="detail-copy"><p class="copy-text">${boldify(post.text)}</p></div>`;
+    } else if (post.type === 'tendencias') {
+      const links = Array.isArray(post.links) ? post.links : [];
+      const linksHTML = links.map(lk =>
+        `<li><a href="${escHtml(lk.url)}" target="_blank" rel="noopener"><span class="lnk">${escHtml(lk.label)}</span></a></li>`
+      ).join('');
+      mediaHTML = `<div class="detail-trend">${post.h3 ? `<h3>${escHtml(post.h3)}</h3>` : ''}${linksHTML ? `<ul class="trend-links">${linksHTML}</ul>` : ''}</div>`;
+    }
+
+    const infoHTML = `
+      ${post.title ? `<h2 class="detail-title">${escHtml(post.title)}</h2>` : ''}
+      ${post.desc  ? `<p  class="detail-desc">${escHtml(post.desc)}</p>`   : ''}
+      <span class="card-tag" style="margin-top:10px">${LABELS[post.type]}</span>
+    `;
+
+    body.innerHTML = mediaHTML + `<div class="detail-info">${infoHTML}</div>`;
+    detailModal.classList.add('open');
   }
 
   /* ── Filtros ── */
@@ -516,7 +607,7 @@
   if ($('loginCancel')) $('loginCancel').addEventListener('click', () => closeModal(loginModal));
   if (loginPass) loginPass.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
-  createBtn.addEventListener('click', () => { resetForm(); openModal(createModal); });
+  createBtn.addEventListener('click', () => { resetForm(); $('createTitle').textContent = 'Nuevo posteo'; openModal(createModal); });
   if ($('createCancel')) $('createCancel').addEventListener('click', () => closeModal(createModal));
 
   logoutBtn.addEventListener('click', () => {
