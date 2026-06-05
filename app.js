@@ -22,23 +22,30 @@
   var toast       = $('toast');
   var emptyMsg    = $('empty');
 
-  var typeSeg    = $('typeSeg');
-  var fTitle     = $('fTitle');
-  var fImage     = $('fImage');
-  var fImageUrl  = $('fImageUrl');
-  var imgPreview = $('imgPreview');
-  var fVideo     = $('fVideo');
-  var fPoster    = $('fPoster');
-  var fCopy      = $('fCopy');
-  var fH3        = $('fH3');
-  var fDesc      = $('fDesc');
-  var linkList   = $('linkList');
+  var typeSeg      = $('typeSeg');
+  var statusSeg    = $('statusSeg');
+  var fTitle       = $('fTitle');
+  var fImage       = $('fImage');
+  var fImageUrl    = $('fImageUrl');
+  var imgPreview   = $('imgPreview');
+  var fVideo       = $('fVideo');
+  var fPoster      = $('fPoster');
+  var fCopy        = $('fCopy');
+  var fH3          = $('fH3');
+  var fDesc        = $('fDesc');
+  var fProductUrl  = $('fProductUrl');
+  var linkList     = $('linkList');
+  var deleteModal  = $('deleteModal');
+  var deletePass   = $('deletePass');
+  var deleteErr    = $('deleteErr');
 
   var currentType   = 'estatico';
+  var currentStatus = 'sinhacer';
   var editId        = null;
   var pendingImg    = null;
   var pendingPoster = null;
   var trendLinks    = [];
+  var pendingDeleteId = null;
 
   var allPosts     = [];
   var activeFilter = 'todos';
@@ -108,6 +115,22 @@
     if (btn) switchType(btn.dataset.type);
   });
 
+  function switchStatus(status) {
+    currentStatus = status;
+    if (statusSeg) {
+      statusSeg.querySelectorAll('[data-status]').forEach(btn => {
+        btn.setAttribute('aria-pressed', btn.dataset.status === status ? 'true' : 'false');
+      });
+    }
+  }
+
+  if (statusSeg) {
+    statusSeg.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-status]');
+      if (btn) switchStatus(btn.dataset.status);
+    });
+  }
+
   /* ── Firebase ── */
   async function loadPosts() {
     try {
@@ -139,8 +162,21 @@
     }
   }
 
-  async function deletePost(id) {
-    if (!confirm('¿Eliminar este posteo?')) return;
+  function deletePost(id) {
+    pendingDeleteId = id;
+    if (deletePass) deletePass.value = '';
+    if (deleteErr) deleteErr.classList.add('hidden');
+    openModal(deleteModal);
+  }
+
+  async function doDeleteConfirm() {
+    if (!deletePass || deletePass.value !== AUTH.pass) {
+      if (deleteErr) deleteErr.classList.remove('hidden');
+      return;
+    }
+    const id = pendingDeleteId;
+    pendingDeleteId = null;
+    closeModal(deleteModal);
     try {
       await db.collection('posts').doc(id).delete();
       await loadPosts();
@@ -151,9 +187,24 @@
     }
   }
 
+  async function updatePostStatus(id, status) {
+    try {
+      await db.collection('posts').doc(id).update({ status });
+      const post = allPosts.find(p => p.id === id);
+      if (post) post.status = status;
+      render();
+      showToast('Estado actualizado');
+    } catch (e) {
+      console.error('updatePostStatus:', e);
+      showToast('❌ Error al actualizar estado');
+    }
+  }
+
   /* ── Guardar posteo ── */
   $('saveBtn').addEventListener('click', function () {
-    const post = { type: currentType };
+    const post = { type: currentType, status: currentStatus };
+
+    if (fProductUrl && fProductUrl.value.trim()) post.productUrl = fProductUrl.value.trim();
 
     if (currentType !== 'tendencias') post.title = fTitle.value.trim();
     if (fDesc && fDesc.value.trim() && currentType !== 'copy' && currentType !== 'tendencias') {
@@ -327,6 +378,8 @@
     pendingPoster = null;
     trendLinks = [];
     fTitle.value = '';
+    if (fProductUrl) fProductUrl.value = '';
+    switchStatus('sinhacer');
     if (fImage)    fImage.value    = '';
     if (fImageUrl) fImageUrl.value = '';
     activeImgTab = 'file';
@@ -363,33 +416,68 @@
     return `<video src="${escHtml(url)}"${posterAttr} controls muted playsinline preload="metadata"></video>`;
   }
 
+  function buildStatusDots(post) {
+    const s = post.status || 'sinhacer';
+    const admin = isAuthed();
+    const dots = [
+      { key: 'sinhacer',  cls: 'red',    title: 'Sin hacer' },
+      { key: 'enproceso', cls: 'yellow', title: 'En proceso' },
+      { key: 'terminado', cls: 'green',  title: 'Terminado' },
+    ];
+    const inner = dots.map(d =>
+      `<span class="sdot sdot--${d.cls}${s === d.key ? ' sdot--active' : ''}"
+        ${admin ? `data-setstatus="${d.key}" data-statuspost="${post.id}"` : ''}
+        title="${d.title}"></span>`
+    ).join('');
+    return `<div class="card-status">${inner}</div>`;
+  }
+
+  function buildUrlLink(post) {
+    if (!post.productUrl) return '';
+    return `<a class="card-url-btn" href="${escHtml(post.productUrl)}" target="_blank" rel="noopener" title="Ver producto finalizado" onclick="event.stopPropagation()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>`;
+  }
+
   function buildCardHTML(post) {
     const admin = isAuthed()
-      ? `<div class="card-admin-btns"><button class="btn btn--sm card-edit-btn" data-edit="${post.id}" title="Editar">✏️</button><button class="btn btn--sm" data-delete="${post.id}" title="Eliminar">🗑</button></div>`
+      ? `<div class="card-admin-btns">
+          <button class="btn btn--sm card-edit-btn" data-edit="${post.id}" title="Editar">✏️</button>
+          <button class="btn btn--sm btn--danger-soft" data-delete="${post.id}" title="Eliminar">🗑</button>
+        </div>`
       : '';
+
+    const statusDots = buildStatusDots(post);
+    const urlLink = buildUrlLink(post);
 
     if (post.type === 'estatico') {
       return `${admin}
         <div class="media"><img src="${escHtml(post.img)}" alt="${escHtml(post.title)}" loading="lazy" /></div>
         <div class="card-foot">
+          ${statusDots}
           <span class="card-tag">${LABELS.estatico}</span>
           ${post.title ? `<p class="card-title">${escHtml(post.title)}</p>` : ''}
+          ${urlLink}
         </div>`;
     }
     if (post.type === 'video') {
       return `${admin}
         <div class="media">${videoEmbed(post.video, post.poster)}</div>
         <div class="card-foot">
+          ${statusDots}
           <span class="card-tag">${LABELS.video}</span>
           ${post.title ? `<p class="card-title">${escHtml(post.title)}</p>` : ''}
+          ${urlLink}
         </div>`;
     }
     if (post.type === 'copy') {
       return `${admin}
         <div class="copy-body"><p class="copy-text">${boldify(post.text)}</p></div>
         <div class="card-foot">
+          ${statusDots}
           <span class="card-tag">${LABELS.copy}</span>
           ${post.title ? `<p class="card-title">${escHtml(post.title)}</p>` : ''}
+          ${urlLink}
         </div>`;
     }
     if (post.type === 'tendencias') {
@@ -402,7 +490,11 @@
           ${post.h3 ? `<h3>${escHtml(post.h3)}</h3>` : ''}
           ${linksHTML ? `<ul class="trend-links">${linksHTML}</ul>` : ''}
         </div>
-        <div class="card-foot"><span class="card-tag">${LABELS.tendencias}</span></div>`;
+        <div class="card-foot">
+          ${statusDots}
+          <span class="card-tag">${LABELS.tendencias}</span>
+          ${urlLink}
+        </div>`;
     }
     return '';
   }
@@ -450,9 +542,18 @@
       btn.addEventListener('click', e => { e.stopPropagation(); startEdit(btn.dataset.edit); });
     });
 
+    if (isAuthed()) {
+      grid.querySelectorAll('[data-setstatus]').forEach(dot => {
+        dot.addEventListener('click', e => {
+          e.stopPropagation();
+          updatePostStatus(dot.dataset.statuspost, dot.dataset.setstatus);
+        });
+      });
+    }
+
     grid.querySelectorAll('.card').forEach(card => {
       card.addEventListener('click', e => {
-        if (e.target.closest('[data-delete],[data-edit]')) return;
+        if (e.target.closest('[data-delete],[data-edit],[data-setstatus],.card-url-btn')) return;
         const postId = card.dataset.postId;
         if (postId) openDetailModal(postId);
       });
@@ -467,8 +568,10 @@
     editId = id;
     $('createTitle').textContent = 'Editar posteo';
     switchType(post.type);
+    switchStatus(post.status || 'sinhacer');
     if (post.title) fTitle.value = post.title;
     if (post.desc && fDesc) fDesc.value = post.desc;
+    if (post.productUrl && fProductUrl) fProductUrl.value = post.productUrl;
 
     if (post.type === 'estatico' && post.img) {
       pendingImg = post.img;
@@ -620,6 +723,19 @@
   [loginModal, createModal].forEach(modal => {
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal); });
   });
+
+  if (deleteModal) {
+    deleteModal.addEventListener('click', e => { if (e.target === deleteModal) closeModal(deleteModal); });
+  }
+  if ($('deleteCancelBtn')) {
+    $('deleteCancelBtn').addEventListener('click', () => { pendingDeleteId = null; closeModal(deleteModal); });
+  }
+  if ($('deleteConfirmBtn')) {
+    $('deleteConfirmBtn').addEventListener('click', doDeleteConfirm);
+  }
+  if (deletePass) {
+    deletePass.addEventListener('keydown', e => { if (e.key === 'Enter') doDeleteConfirm(); });
+  }
 
   console.log('✅ LACOOPEAR × QBM cargado');
 })();

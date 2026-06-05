@@ -102,6 +102,22 @@
         <input class="input" id="fTitle" type="text" placeholder="Ej: Reel teaser — lanzamiento" />
       </div>
 
+      <!-- ESTADO DE TAREA -->
+      <div class="field">
+        <label id="statusLabel">Estado de la tarea</label>
+        <div class="seg seg--status" id="statusSeg" role="group" aria-labelledby="statusLabel">
+          <button type="button" data-status="sinhacer" aria-pressed="true">🔴 Sin hacer</button>
+          <button type="button" data-status="enproceso" aria-pressed="false">🟡 En proceso</button>
+          <button type="button" data-status="terminado" aria-pressed="false">🟢 Terminado</button>
+        </div>
+      </div>
+
+      <!-- ENLACE AL PRODUCTO FINAL -->
+      <div class="field">
+        <label for="fProductUrl">Enlace al producto finalizado <span class="lower">(opcional)</span></label>
+        <input class="input" id="fProductUrl" type="url" placeholder="https://ejemplo.com/producto-final" />
+      </div>
+
       <!-- ESTÁTICO -->
       <div class="field f-estatico">
         <label>Imagen</label>
@@ -162,6 +178,23 @@
       <div class="modal-actions">
         <button class="btn" id="createCancel" type="button">Cancelar</button>
         <button class="btn btn--primary" id="saveBtn" type="button">Guardar posteo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: CONFIRMAR ELIMINACIÓN ============ -->
+  <div class="modal" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteHeading">
+    <div class="modal-card modal-card--narrow">
+      <h2 id="deleteHeading">⚠️ Eliminar posteo</h2>
+      <p class="modal-sub">Esta acción no se puede deshacer. Ingresá la contraseña de administrador para confirmar.</p>
+      <div class="field">
+        <label for="deletePass">Contraseña admin</label>
+        <input class="input" id="deletePass" type="password" placeholder="Contraseña" autocomplete="current-password" />
+      </div>
+      <p class="note err hidden" id="deleteErr">Contraseña incorrecta.</p>
+      <div class="modal-actions">
+        <button class="btn" id="deleteCancelBtn" type="button">Cancelar</button>
+        <button class="btn btn--danger" id="deleteConfirmBtn" type="button">Sí, eliminar</button>
       </div>
     </div>
   </div>

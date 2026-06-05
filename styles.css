@@ -1273,3 +1273,84 @@ textarea.input {
   margin: 0;
   white-space: pre-wrap;
 }
+
+/* ============================================================
+   ESTADO DE TAREA — CÍRCULOS DE COLOR (sdot)
+   ============================================================ */
+.sdot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  opacity: .35;
+  transition: opacity .15s, transform .15s, box-shadow .15s;
+  flex-shrink: 0;
+}
+
+.sdot--red    { background: #e5484d; border-color: #e5484d; }
+.sdot--yellow { background: #f5a623; border-color: #f5a623; }
+.sdot--green  { background: #30a46c; border-color: #30a46c; }
+
+.sdot--active {
+  opacity: 1;
+  box-shadow: 0 0 6px 1px currentColor;
+}
+.sdot--red.sdot--active    { box-shadow: 0 0 7px 1px #e5484d; }
+.sdot--yellow.sdot--active { box-shadow: 0 0 7px 1px #f5a623; }
+.sdot--green.sdot--active  { box-shadow: 0 0 7px 1px #30a46c; }
+
+.is-admin .sdot { cursor: pointer; }
+.is-admin .sdot:hover { opacity: .75; transform: scale(1.25); }
+
+/* ============================================================
+   BOTÓN ENLACE AL PRODUCTO FINAL
+   ============================================================ */
+.card-url-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(106, 168, 255, .12);
+  color: var(--accent);
+  border: 1px solid rgba(106, 168, 255, .25);
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.card-url-btn:hover {
+  background: rgba(106, 168, 255, .25);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.card-foot > .card-url-btn {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   BOTÓN PELIGRO (DANGER) SUAVE EN TARJETAS
+   ============================================================ */
+.btn--danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+.btn--danger:hover { filter: brightness(1.15); }
+
+.btn--danger-soft:hover {
+  background: rgba(229, 72, 77, .2);
+  color: #e5484d;
+  border-color: rgba(229, 72, 77, .4);
+}
+
+/* ============================================================
+   SEGMENTED CONTROL DE ESTADO
+   ============================================================ */
+.seg--status button[data-status="sinhacer"][aria-pressed="true"]  { color: #e5484d; border-color: #e5484d; background: rgba(229,72,77,.12); }
+.seg--status button[data-status="enproceso"][aria-pressed="true"] { color: #f5a623; border-color: #f5a623; background: rgba(245,166,35,.12); }
+.seg--status button[data-status="terminado"][aria-pressed="true"] { color: #30a46c; border-color: #30a46c; background: rgba(48,164,108,.12); }
